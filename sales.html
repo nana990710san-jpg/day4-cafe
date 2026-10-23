@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <style>
-    /* 공통 디자인 값: 5개 페이지 모두 같은 블록을 쓴다 */
+    /* 공통 디자인 값: 모든 페이지가 같은 블록을 쓴다 */
     :root {
       --bg: #faf6f0;
       --surface: #ffffff;
@@ -22,73 +22,36 @@
       --font: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
     }
 
+    /* 공통 모양: 모든 페이지가 같은 블록을 쓴다 (여백 · 카드 · 입력칸 · 버튼 · 알림) */
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      padding: 24px;
-      font-family: var(--font);
-      background: var(--surface);
-      color: var(--text);
-      font-size: 16px;
-    }
+    body { margin: 0; padding: 24px; font-family: var(--font); background: var(--surface); color: var(--text); font-size: 16px; line-height: 1.5; }
     h1 { margin: 0 0 4px; font-size: 26px; }
-    .sub { margin: 0 0 24px; color: var(--muted); }
     h2 { margin: 0 0 12px; font-size: 19px; }
-
-    .card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 24px;
-    }
-
-    button { font: inherit; }
-    .btn {
-      padding: 10px 18px;
-      border: 0;
-      border-radius: 8px;
-      background: var(--brown);
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .btn:hover { background: var(--brown-dark); }
-    .btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
-    .btn-ghost {
-      width: 44px; height: 44px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface);
-      color: var(--brown-dark);
-      font-size: 20px;
-      cursor: pointer;
-    }
+    .sub { margin: 0 0 24px; color: var(--muted); }
+    .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+    input, select, textarea, button { font: inherit; }
+    input, select, textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); min-width: 0; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--brown); outline-offset: -1px; }
+    .btn, .btn-line { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 10px 20px; border-radius: 8px; font-weight: 700; white-space: nowrap; text-decoration: none; cursor: pointer; }
+    .btn { border: 1px solid var(--brown); background: var(--brown); color: #fff; }
+    .btn:hover { background: var(--brown-dark); border-color: var(--brown-dark); }
+    .btn-line { border: 1px solid var(--border); background: var(--surface); color: var(--brown-dark); }
+    .btn-line:hover { background: var(--brown-soft); }
+    .btn:disabled, .btn-line:disabled { border-color: var(--border); background: var(--border); color: var(--muted); cursor: default; }
+    .btn-ghost { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--brown-dark); font-size: 20px; cursor: pointer; }
     .btn-ghost:hover { background: var(--brown-soft); }
-    .btn-cancel {
-      padding: 6px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface);
-      color: var(--muted);
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .btn-cancel:hover { border-color: var(--danger); color: var(--danger); }
+    .empty { padding: 32px; text-align: center; color: var(--muted); }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 10; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 12px 20px; border-radius: var(--radius); background: var(--brown-dark); color: #fff; opacity: 0; transition: opacity .2s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+    .toast.error { background: var(--danger); }
+    @media (max-width: 720px) { body { padding: 16px; } }
 
     /* 오늘 합계 */
     .totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
-    .total {
-      background: var(--brown-dark);
-      color: #fff;
-      border-radius: var(--radius);
-      padding: 16px 20px;
-    }
-    .total .label { font-size: 14px; color: #e9dccd; }
+    .total { background: var(--brown-soft); color: var(--brown-dark); border-radius: var(--radius); padding: 16px 20px; }
+    .total.dark { background: var(--brown-dark); color: #fff; }
+    .total .label { font-size: 14px; opacity: .8; }
     .total .value { margin-top: 4px; font-size: 28px; font-weight: 700; }
-    .total.light { background: var(--brown-soft); color: var(--brown-dark); }
-    .total.light .label { color: var(--muted); }
 
     /* 메뉴 고르기 */
     .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
@@ -119,13 +82,9 @@
     .order-bar .picked { flex: 1; min-width: 160px; font-size: 17px; }
     .order-bar .picked b { font-size: 19px; }
     .qty-box { display: flex; align-items: center; gap: 6px; }
-    .qty-box input {
-      width: 64px; height: 44px;
-      border: 1px solid var(--border); border-radius: 8px;
-      text-align: center; font: inherit; font-size: 20px; font-weight: 700;
-    }
+    .qty-box input { width: 64px; height: 44px; text-align: center; font-size: 20px; font-weight: 700; }
     .order-bar .amount { font-size: 22px; font-weight: 700; color: var(--brown-dark); min-width: 110px; text-align: right; }
-    .order-bar .btn { padding: 12px 26px; font-size: 17px; }
+    .qty-hint { flex-basis: 100%; margin: 0; color: var(--danger); font-weight: 600; }
 
     /* 오늘 판매 목록 */
     .table-wrap { overflow-x: auto; }
@@ -135,19 +94,9 @@
     td.num, th.num { text-align: right; }
     td.time { color: var(--muted); }
     td.menu { font-weight: 600; }
-    .empty { padding: 32px; text-align: center; color: var(--muted); white-space: normal; }
-
-    .toast {
-      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-      padding: 12px 20px; border-radius: var(--radius);
-      background: var(--brown-dark); color: #fff;
-      opacity: 0; transition: opacity .2s; pointer-events: none;
-    }
-    .toast.show { opacity: 1; }
-    .toast.error { background: var(--danger); }
+    td .empty, .empty { white-space: normal; }
 
     @media (max-width: 720px) {
-      body { padding: 16px; }
       .totals { grid-template-columns: 1fr 1fr; }
       .totals .total:first-child { grid-column: 1 / -1; }
       .total .value { font-size: 24px; }
@@ -163,9 +112,9 @@
   <p class="sub">메뉴와 수량을 골라 판매를 넣어요. 판매하면 그 메뉴의 재고가 줄어요.</p>
 
   <div class="totals">
-    <div class="total"><div class="label">오늘 매출</div><div class="value" id="t-amount">0원</div></div>
-    <div class="total light"><div class="label">판매 수량</div><div class="value" id="t-qty">0개</div></div>
-    <div class="total light"><div class="label">판매 건수</div><div class="value" id="t-count">0건</div></div>
+    <div class="total dark"><div class="label">오늘 매출</div><div class="value" id="t-amount">0원</div></div>
+    <div class="total"><div class="label">판매 수량</div><div class="value" id="t-qty">0개</div></div>
+    <div class="total"><div class="label">판매 건수</div><div class="value" id="t-count">0건</div></div>
   </div>
 
   <section class="card">
@@ -180,6 +129,7 @@
       </div>
       <div class="amount" id="amount">0원</div>
       <button class="btn" id="save" disabled>판매 저장</button>
+      <p class="qty-hint" id="qty-hint" hidden></p>
     </div>
   </section>
 
@@ -203,27 +153,40 @@
     const LOW_STOCK = 5;
 
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const $ = id => document.getElementById(id);
-    const won = n => n.toLocaleString('ko-KR') + '원';
-    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-    let menus = [];
-    let selected = null; // 고른 메뉴
+    // ---------- 공통 도우미: 모든 페이지가 같은 블록을 쓴다 ----------
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const won = n => (Number(n) || 0).toLocaleString('ko-KR') + '원';
 
     function toast(msg, isError = false) {
       const el = $('toast');
       el.textContent = msg;
       el.className = 'toast show' + (isError ? ' error' : '');
       clearTimeout(toast.t);
-      toast.t = setTimeout(() => el.className = 'toast', 2500);
+      toast.t = setTimeout(() => el.className = 'toast', isError ? 4000 : 2500);
     }
+
+    // 에러를 사장님이 알아듣는 말로 바꾼다 (원문은 개발자 도구에만 남김)
+    function friendly(err) {
+      console.error(err);
+      const m = String(err?.message ?? err ?? '');
+      if (/failed to fetch|networkerror|load failed/i.test(m)) return '인터넷 연결이 끊긴 것 같아요. 연결을 확인하고 다시 해 주세요';
+      if (/[가-힣]/.test(m)) return m; // 우리가 만든 한국어 안내는 그대로
+      return '잠깐 문제가 생겼어요. 잠시 후 다시 해 주세요';
+    }
+    // ---------- 공통 도우미 끝 ----------
+
+    let menus = [];
+    let selected = null; // 고른 메뉴
+    let saving = false;  // 저장 중에는 다시 읽어도 저장 버튼을 켜지 않는다 (두 번 저장 방지)
 
     // ---------- 메뉴 ----------
     async function loadMenus() {
       const { data, error } = await db.from('menus').select('*').order('category').order('name');
       if (error) {
-        $('menu-grid').innerHTML = '<div class="empty">메뉴를 불러오지 못했어요.</div>';
-        return toast('메뉴 불러오기 실패: ' + error.message, true);
+        $('menu-grid').innerHTML = '<div class="empty">메뉴를 불러오지 못했어요. 잠시 후 새로고침해 주세요</div>';
+        return toast(friendly(error), true);
       }
       menus = data;
       if (selected) selected = menus.find(m => m.id === selected.id) || null;
@@ -233,7 +196,7 @@
 
     function renderMenus() {
       if (!menus.length) {
-        $('menu-grid').innerHTML = '<div class="empty">메뉴가 없어요. 메뉴 · 재고 화면에서 먼저 추가해 주세요.</div>';
+        $('menu-grid').innerHTML = '<div class="empty">메뉴가 없어요. 메뉴 · 재고 화면에서 먼저 추가해 주세요</div>';
         return;
       }
       $('menu-grid').innerHTML = menus.map(m => `
@@ -258,6 +221,9 @@
 
     function updateOrder() {
       const q = qty();
+      const over = selected && q > selected.stock;
+      $('qty-hint').hidden = !over;
+      if (over) $('qty-hint').textContent = `재고가 ${selected.stock}개뿐이라 ${q}개는 팔 수 없어요`;
       if (!selected) {
         $('picked').textContent = '메뉴를 골라 주세요';
         $('amount').textContent = won(0);
@@ -266,8 +232,7 @@
       }
       $('picked').innerHTML = `<b>${esc(selected.name)}</b> · ${won(selected.price)}`;
       $('amount').textContent = won(selected.price * Math.max(q, 0));
-      $('save').disabled = q < 1 || q > selected.stock;
-      if (q > selected.stock) toast(`재고가 ${selected.stock}개뿐이에요`, true);
+      $('save').disabled = saving || q < 1 || over;
     }
 
     $('qty-minus').addEventListener('click', () => { $('qty').value = Math.max(1, qty() - 1); updateOrder(); });
@@ -277,16 +242,18 @@
 
     // ---------- 판매 저장 (판매 기록 + 재고 차감은 DB 함수 record_sale이 한 번에 처리) ----------
     $('save').addEventListener('click', async () => {
-      if (!selected) return;
+      if (!selected || saving) return;
       const q = qty();
+      saving = true;
       $('save').disabled = true;
       const { error } = await db.rpc('record_sale', { p_menu_id: selected.id, p_quantity: q });
       if (error) {
-        toast('저장 실패: ' + error.message, true);
+        toast('판매를 저장하지 못했어요. ' + friendly(error), true);
       } else {
         toast(`${selected.name} ${q}개 판매했어요`);
         $('qty').value = 1;
       }
+      saving = false;
       await Promise.all([loadMenus(), loadSales()]);
     });
 
@@ -302,8 +269,8 @@
         .gte('sold_at', startOfToday())
         .order('sold_at', { ascending: false });
       if (error) {
-        $('list').innerHTML = '<tr><td colspan="5" class="empty">판매 목록을 불러오지 못했어요.</td></tr>';
-        return toast('판매 불러오기 실패: ' + error.message, true);
+        $('list').innerHTML = '<tr><td colspan="5" class="empty">판매 목록을 불러오지 못했어요. 잠시 후 새로고침해 주세요</td></tr>';
+        return toast(friendly(error), true);
       }
 
       $('t-amount').textContent = won(data.reduce((s, r) => s + r.amount, 0));
@@ -311,7 +278,7 @@
       $('t-count').textContent = data.length + '건';
 
       if (!data.length) {
-        $('list').innerHTML = '<tr><td colspan="5" class="empty">오늘 판매가 아직 없어요.</td></tr>';
+        $('list').innerHTML = '<tr><td colspan="5" class="empty">오늘 판매가 아직 없어요</td></tr>';
         return;
       }
       $('list').innerHTML = data.map(r => `
@@ -320,24 +287,30 @@
           <td class="menu">${esc(r.menu_name)}</td>
           <td class="num">${r.quantity}</td>
           <td class="num">${won(r.amount)}</td>
-          <td class="num"><button class="btn-cancel" data-id="${r.id}" data-name="${esc(r.menu_name)}" data-qty="${r.quantity}">취소</button></td>
+          <td class="num"><button class="btn-line" data-id="${r.id}" data-name="${esc(r.menu_name)}" data-qty="${r.quantity}">취소</button></td>
         </tr>`).join('');
     }
 
     // 판매 취소: 기록 삭제 + 재고 되돌리기 (DB 함수 cancel_sale)
     $('list').addEventListener('click', async e => {
-      const btn = e.target.closest('.btn-cancel');
+      const btn = e.target.closest('button[data-id]');
       if (!btn) return;
       if (!confirm(`${btn.dataset.name} ${btn.dataset.qty}개 판매를 취소할까요?\n재고가 다시 늘어나요.`)) return;
       btn.disabled = true;
       const { error } = await db.rpc('cancel_sale', { p_sale_id: Number(btn.dataset.id) });
       if (error) {
         btn.disabled = false;
-        return toast('취소 실패: ' + error.message, true);
+        return toast('판매를 취소하지 못했어요. ' + friendly(error), true);
       }
       toast('판매를 취소했어요');
       await Promise.all([loadMenus(), loadSales()]);
     });
+
+    // 다른 화면에 갔다 오거나 자정이 지나면 숫자를 새로 읽는다
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) { loadMenus(); loadSales(); }
+    });
+    setInterval(loadSales, 5 * 60 * 1000);
 
     loadMenus();
     loadSales();

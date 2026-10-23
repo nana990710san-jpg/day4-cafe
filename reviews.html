@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <style>
-    /* 공통 디자인 값: 5개 페이지 모두 같은 블록을 쓴다 */
+    /* 공통 디자인 값: 모든 페이지가 같은 블록을 쓴다 */
     :root {
       --bg: #faf6f0;
       --surface: #ffffff;
@@ -22,43 +22,29 @@
       --font: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
     }
 
+    /* 공통 모양: 모든 페이지가 같은 블록을 쓴다 (여백 · 카드 · 입력칸 · 버튼 · 알림) */
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      padding: 24px;
-      font-family: var(--font);
-      background: var(--surface);
-      color: var(--text);
-      font-size: 16px;
-    }
+    body { margin: 0; padding: 24px; font-family: var(--font); background: var(--surface); color: var(--text); font-size: 16px; line-height: 1.5; }
     h1 { margin: 0 0 4px; font-size: 26px; }
+    h2 { margin: 0 0 12px; font-size: 19px; }
     .sub { margin: 0 0 24px; color: var(--muted); }
-
-    button, textarea { font: inherit; }
-    .btn {
-      padding: 10px 18px;
-      border: 0;
-      border-radius: 8px;
-      background: var(--brown);
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .btn:hover { background: var(--brown-dark); }
-    .btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
-    .btn-line {
-      padding: 10px 16px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface);
-      color: var(--brown-dark);
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-    }
+    .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+    input, select, textarea, button { font: inherit; }
+    input, select, textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); min-width: 0; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--brown); outline-offset: -1px; }
+    .btn, .btn-line { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 10px 20px; border-radius: 8px; font-weight: 700; white-space: nowrap; text-decoration: none; cursor: pointer; }
+    .btn { border: 1px solid var(--brown); background: var(--brown); color: #fff; }
+    .btn:hover { background: var(--brown-dark); border-color: var(--brown-dark); }
+    .btn-line { border: 1px solid var(--border); background: var(--surface); color: var(--brown-dark); }
     .btn-line:hover { background: var(--brown-soft); }
-    .btn-line:disabled { color: var(--muted); cursor: default; background: var(--surface); }
+    .btn:disabled, .btn-line:disabled { border-color: var(--border); background: var(--border); color: var(--muted); cursor: default; }
+    .btn-ghost { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--brown-dark); font-size: 20px; cursor: pointer; }
+    .btn-ghost:hover { background: var(--brown-soft); }
+    .empty { padding: 32px; text-align: center; color: var(--muted); }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 10; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 12px 20px; border-radius: var(--radius); background: var(--brown-dark); color: #fff; opacity: 0; transition: opacity .2s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+    .toast.error { background: var(--danger); }
+    @media (max-width: 720px) { body { padding: 16px; } }
 
     /* 요약 */
     .totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
@@ -69,24 +55,11 @@
 
     /* 필터 */
     .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-    .tab {
-      padding: 8px 16px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: var(--surface);
-      color: var(--muted);
-      cursor: pointer;
-    }
+    .tab { padding: 8px 16px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); cursor: pointer; }
     .tab.active { background: var(--brown); border-color: var(--brown); color: #fff; font-weight: 700; }
 
     /* 리뷰 카드 */
-    .review {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      margin-bottom: 14px;
-    }
+    .review.card { padding: 18px 20px; margin-bottom: 14px; }
     .review-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .stars { color: #e0a526; font-size: 18px; letter-spacing: 1px; }
     .stars .off { color: var(--border); }
@@ -101,35 +74,11 @@
 
     .reply-box { border-top: 1px dashed var(--border); padding-top: 12px; }
     .reply-box label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--muted); }
-    .reply-box textarea {
-      width: 100%;
-      min-height: 84px;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface);
-      color: var(--text);
-      line-height: 1.5;
-      resize: vertical;
-    }
-    .reply-box textarea:focus { outline: 2px solid var(--brown); outline-offset: -1px; }
+    .reply-box textarea { width: 100%; min-height: 84px; resize: vertical; }
     .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
     .thinking { color: var(--muted); font-size: 14px; align-self: center; }
 
-    .empty { padding: 32px; text-align: center; color: var(--muted); }
-
-    .toast {
-      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-      padding: 12px 20px; border-radius: var(--radius);
-      background: var(--brown-dark); color: #fff;
-      opacity: 0; transition: opacity .2s; pointer-events: none;
-      max-width: calc(100% - 32px);
-    }
-    .toast.show { opacity: 1; }
-    .toast.error { background: var(--danger); }
-
     @media (max-width: 720px) {
-      body { padding: 16px; }
       .totals { grid-template-columns: 1fr 1fr; }
       .totals .total:first-child { grid-column: 1 / -1; }
       .total .value { font-size: 24px; }
@@ -160,16 +109,13 @@
   <script>
     const SUPABASE_URL = 'https://nmjnzcmxckaftvztfjhj.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_6xkxdgP44bIiejCxat0SjA_o8E-R5EO';
-    const AI_URL = SUPABASE_URL + '/functions/v1/cafe-ai';
 
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ---------- 공통 도우미: 모든 페이지가 같은 블록을 쓴다 ----------
     const $ = id => document.getElementById(id);
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-    let reviews = [];
-    let filter = 'all';
-    const busy = new Set(); // AI 분석 중인 리뷰 id
-    const drafts = {};      // 저장 안 한 답글 (다시 그려도 지워지지 않게)
+    const won = n => (Number(n) || 0).toLocaleString('ko-KR') + '원';
 
     function toast(msg, isError = false) {
       const el = $('toast');
@@ -179,7 +125,26 @@
       toast.t = setTimeout(() => el.className = 'toast', isError ? 4000 : 2500);
     }
 
-    // cafe-ai 호출 (무료 모델이라 1~2분 걸리거나 실패할 수 있음)
+    // 에러를 사장님이 알아듣는 말로 바꾼다 (원문은 개발자 도구에만 남김)
+    function friendly(err) {
+      console.error(err);
+      const m = String(err?.message ?? err ?? '');
+      if (/failed to fetch|networkerror|load failed/i.test(m)) return '인터넷 연결이 끊긴 것 같아요. 연결을 확인하고 다시 해 주세요';
+      if (/[가-힣]/.test(m)) return m; // 우리가 만든 한국어 안내는 그대로
+      return '잠깐 문제가 생겼어요. 잠시 후 다시 해 주세요';
+    }
+    // ---------- 공통 도우미 끝 ----------
+
+    // ---------- AI 호출: index · reviews · promo가 같은 블록을 쓴다 ----------
+    const AI_URL = SUPABASE_URL + '/functions/v1/cafe-ai';
+    const AI_BUSY = 'AI가 지금 바빠서 답을 못 했어요. 1~2분 뒤에 다시 눌러 주세요';
+    const AI_FIELDS = {
+      review: b => typeof b.sentiment === 'string' && typeof b.reply === 'string' && b.reply.trim() !== '',
+      promo: b => Array.isArray(b.captions) && b.captions.length >= 3,
+      brief: b => Array.isArray(b.lines) && b.lines.length >= 3,
+    };
+
+    // 무료 모델이라 1~2분 걸리거나 실패할 수 있다
     async function askAI(type, data) {
       let res;
       try {
@@ -188,25 +153,36 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type, data }),
         });
-      } catch {
-        throw new Error('인터넷 연결을 확인해 주세요.');
+      } catch (err) {
+        throw new Error(friendly(err));
       }
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || `AI 요청 실패 (HTTP ${res.status})`);
+      if (res.status === 400 && body.error) throw new Error(body.error);
+      if (!res.ok || !AI_FIELDS[type](body)) {
+        console.error('cafe-ai', res.status, body);
+        throw new Error(AI_BUSY);
+      }
       return body;
     }
+    // ---------- AI 호출 끝 ----------
+
+    let reviews = [];
+    let filter = 'all';
+    const busy = new Set(); // AI 분석 중인 리뷰 id
+    const drafts = {};      // 저장 안 한 답글 (다시 그려도 지워지지 않게)
 
     async function load() {
       const { data, error } = await db.from('reviews').select('*').order('created_at', { ascending: false });
       if (error) {
-        $('list').innerHTML = '<div class="empty">리뷰를 불러오지 못했어요.</div>';
-        return toast('불러오기 실패: ' + error.message, true);
+        $('list').innerHTML = '<div class="empty">리뷰를 불러오지 못했어요. 잠시 후 새로고침해 주세요</div>';
+        return toast(friendly(error), true);
       }
       reviews = data;
       render();
     }
 
-    function stars(n) {
+    function stars(rating) {
+      const n = Math.min(5, Math.max(0, Math.round(Number(rating) || 0)));
       return '★'.repeat(n) + `<span class="off">${'★'.repeat(5 - n)}</span>`;
     }
 
@@ -220,16 +196,16 @@
 
       const shown = filter === 'wait' ? wait : filter === 'done' ? reviews.filter(r => r.reply) : reviews;
       if (!shown.length) {
-        $('list').innerHTML = `<div class="empty">${filter === 'wait' ? '답글을 기다리는 리뷰가 없어요 👏' : '리뷰가 없어요.'}</div>`;
+        $('list').innerHTML = `<div class="empty">${filter === 'wait' ? '답글을 기다리는 리뷰가 없어요 👏' : '리뷰가 없어요'}</div>`;
         return;
       }
 
       $('list').innerHTML = shown.map(r => {
         const isBusy = busy.has(r.id);
         return `
-        <article class="review" data-id="${r.id}">
+        <article class="review card" data-id="${r.id}">
           <div class="review-head">
-            <span class="stars" aria-label="별점 ${r.rating}점">${stars(r.rating)}</span>
+            <span class="stars" aria-label="별점 ${esc(r.rating)}점">${stars(r.rating)}</span>
             <span class="date">${new Date(r.created_at).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}</span>
             ${r.sentiment ? `<span class="badge s-${esc(r.sentiment)}">${esc(r.sentiment)}</span>` : ''}
             <span class="badge ${r.reply ? 'done' : 'wait'}">${r.reply ? '답글 완료' : '답글 대기'}</span>
@@ -237,7 +213,7 @@
           <p class="content">${esc(r.content)}</p>
           <div class="reply-box">
             <label for="reply-${r.id}">사장님 답글</label>
-            <textarea id="reply-${r.id}" placeholder="AI 분석을 누르면 답글 초안이 들어와요. 직접 써도 돼요." ${isBusy ? 'disabled' : ''}>${esc(drafts[r.id] ?? r.reply)}</textarea>
+            <textarea id="reply-${r.id}" placeholder="AI 분석을 누르면 답글 초안이 들어와요. 직접 써도 돼요" ${isBusy ? 'disabled' : ''}>${esc(drafts[r.id] ?? r.reply)}</textarea>
             <div class="actions">
               <button class="btn" data-act="ai" ${isBusy ? 'disabled' : ''}>${r.reply ? '🤖 AI 다시 분석' : '🤖 AI 분석'}</button>
               <button class="btn-line" data-act="save" ${isBusy ? 'disabled' : ''}>답글 저장</button>
@@ -259,7 +235,7 @@
 
     async function saveReview(id, fields) {
       const { error } = await db.from('reviews').update(fields).eq('id', id);
-      if (error) throw new Error('저장 실패: ' + error.message);
+      if (error) throw new Error('저장하지 못했어요. ' + friendly(error));
       Object.assign(reviews.find(r => r.id === id), fields);
       delete drafts[id];
     }
@@ -278,13 +254,13 @@
       const textarea = card.querySelector('textarea');
 
       if (btn.dataset.act === 'copy') {
-        if (!textarea.value.trim()) return toast('복사할 답글이 없어요.', true);
+        if (!textarea.value.trim()) return toast('복사할 답글이 없어요', true);
         try {
           await navigator.clipboard.writeText(textarea.value);
           toast('답글을 복사했어요');
         } catch {
           textarea.select();
-          toast('복사가 막혀 있어요. 선택된 글을 Ctrl+C로 복사해 주세요.', true);
+          toast('자동 복사가 안 돼요. 선택된 글을 Ctrl+C로 복사해 주세요', true);
         }
         return;
       }
@@ -301,14 +277,14 @@
         return;
       }
 
-      // AI 분석: 감정 + 답글 초안을 받아 바로 저장
-      if (review.reply && textarea.value.trim() && !confirm('지금 답글을 AI 초안으로 바꿀까요?')) return;
+      // AI 분석: 감정 + 답글 초안을 받아 바로 저장. 칸에 글이 있으면 먼저 묻는다.
+      if (textarea.value.trim() && !confirm('지금 칸에 있는 답글을 AI 초안으로 바꿀까요?')) return;
       busy.add(id);
       render();
       try {
         const ai = await askAI('review', { content: review.content, rating: review.rating });
         await saveReview(id, { sentiment: ai.sentiment, reply: ai.reply });
-        toast(`AI 분석 완료: ${ai.sentiment}`);
+        toast(`AI 분석을 마쳤어요 (감정: ${ai.sentiment})`);
       } catch (err) {
         toast(err.message, true);
       } finally {

@@ -7,6 +7,9 @@
 const MODELS = ["liquid/lfm-2.5-2.6b:free", "google/gemma-4-31b-it:free"];
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const SENTIMENTS = ["좋음", "보통", "아쉬움"];
+// Supabase Edge Function은 약 150초에 강제로 끝난다. 그 전에 한국어 에러로 답하도록 전체 마감을 둔다.
+const DEADLINE_MS = 130_000;
+const CALL_TIMEOUT_MS = 40_000;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -53,6 +56,7 @@ ${rating}리뷰: ${content}
     return {
       prompt: `골목 카페의 SNS(인스타그램) 홍보 문구를 서로 다른 느낌으로 3개 써.
 각 문구는 2~3문장, 끝에 해시태그 3~5개. 과장 광고나 사실이 아닌 할인 정보는 넣지 마.
+추가 메모가 있으면 위의 길이 · 해시태그 규칙보다 메모를 먼저 따라.
 메뉴: ${menu.name}${price}
 분위기: ${mood}${note}
 
@@ -96,7 +100,7 @@ function parseJson(text: string): unknown {
   }
 }
 
-async function callModel(model: string, prompt: string, key: string): Promise<string> {
+async function callModel(model: string, prompt: string, key: string, timeoutMs: number): Promise<string> {
   const res = await fetch(OPENROUTER_URL, {
     method: "POST",
     headers: {
@@ -113,11 +117,13 @@ async function callModel(model: string, prompt: string, key: string): Promise<st
       temperature: 0.7,
       max_tokens: 800,
     }),
-    signal: AbortSignal.timeout(60_000),
+    signal: AbortSignal.timeout(timeoutMs),
   }).catch((e) => {
-    throw new Error(`${model}: ${e?.name === "TimeoutError" ? "60초 안에 응답 없음" : e?.message ?? e}`);
+    throw new Error(`${model}: ${e?.name === "TimeoutError" ? `${timeoutMs / 1000}초 안에 응답 없음` : e?.message ?? e}`);
   });
-  const raw = await res.text();
+  const raw = await res.text().catch((e) => {
+    throw new Error(`${model}: 응답을 끝까지 받지 못함 (${e?.name ?? e})`);
+  });
   let body: any = null;
   try { body = JSON.parse(raw); } catch { /* 아래에서 처리 */ }
   if (!res.ok) throw new Error(`${model}: HTTP ${res.status} ${body?.error?.message ?? ""}`.trim());
@@ -144,19 +150,26 @@ Deno.serve(async (req) => {
     return json({ error: msg }, 400);
   }
 
-  // 첫 모델이 실패하거나 형식이 틀리면 다음 모델로
+  // 첫 모델이 실패하거나 형식이 틀리면 다음 모델로 (전체 마감 안에서만)
+  const started = Date.now();
+  const timeLeft = () => DEADLINE_MS - (Date.now() - started);
+  const callTimeout = () => Math.min(CALL_TIMEOUT_MS, timeLeft());
   const errors: string[] = [];
   for (const model of MODELS) {
+    if (timeLeft() < 10_000) {
+      errors.push(`${model}: 시간이 모자라 건너뜀`);
+      continue;
+    }
     try {
       let text: string;
       try {
-        text = await callModel(model, task.prompt, key);
+        text = await callModel(model, task.prompt, key, callTimeout());
       } catch (e) {
-        // 무료 모델은 잠깐씩 429(요청 많음)를 낸다: 3초 뒤 한 번만 다시
-        if (!String(e).includes("HTTP 429")) throw e;
+        // 무료 모델은 잠깐씩 429(요청 많음)를 낸다: 시간이 남으면 3초 뒤 한 번만 다시
+        if (!String(e).includes("HTTP 429") || timeLeft() < 15_000) throw e;
         errors.push(`${model}: 429, 다시 시도`);
         await new Promise((r) => setTimeout(r, 3000));
-        text = await callModel(model, task.prompt, key);
+        text = await callModel(model, task.prompt, key, callTimeout());
       }
       const result = task.check(parseJson(text));
       if (result) return json({ type, model, ...result });
@@ -165,6 +178,7 @@ Deno.serve(async (req) => {
       errors.push(e instanceof Error ? e.message : String(e));
     }
   }
+  // 자세한 이유는 함수 로그에만 남기고, 브라우저에는 안내 문구만 보낸다
   console.error("cafe-ai failed", type, errors);
-  return json({ error: "AI 응답을 받지 못했어요. 잠시 후 다시 시도해 주세요.", details: errors }, 502);
+  return json({ error: "AI가 지금 바빠서 답을 못 했어요. 1~2분 뒤에 다시 눌러 주세요" }, 502);
 });

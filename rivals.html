@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>주변 카페</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    /* 공통 디자인 값: 모든 페이지가 같은 블록을 쓴다 */
+    :root {
+      --bg: #faf6f0;
+      --surface: #ffffff;
+      --brown: #6f4e37;
+      --brown-dark: #4a3324;
+      --brown-soft: #efe4d6;
+      --text: #2b211a;
+      --muted: #8a7a6c;
+      --border: #e6dccf;
+      --danger: #c0392b;
+      --radius: 12px;
+      --font: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+    }
+
+    /* 공통 모양: 모든 페이지가 같은 블록을 쓴다 (여백 · 카드 · 입력칸 · 버튼 · 알림) */
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; font-family: var(--font); background: var(--surface); color: var(--text); font-size: 16px; line-height: 1.5; }
+    h1 { margin: 0 0 4px; font-size: 26px; }
+    h2 { margin: 0 0 12px; font-size: 19px; }
+    .sub { margin: 0 0 24px; color: var(--muted); }
+    .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+    input, select, textarea, button { font: inherit; }
+    input, select, textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); min-width: 0; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--brown); outline-offset: -1px; }
+    .btn, .btn-line { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 10px 20px; border-radius: 8px; font-weight: 700; white-space: nowrap; text-decoration: none; cursor: pointer; }
+    .btn { border: 1px solid var(--brown); background: var(--brown); color: #fff; }
+    .btn:hover { background: var(--brown-dark); border-color: var(--brown-dark); }
+    .btn-line { border: 1px solid var(--border); background: var(--surface); color: var(--brown-dark); }
+    .btn-line:hover { background: var(--brown-soft); }
+    .btn:disabled, .btn-line:disabled { border-color: var(--border); background: var(--border); color: var(--muted); cursor: default; }
+    .btn-ghost { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--brown-dark); font-size: 20px; cursor: pointer; }
+    .btn-ghost:hover { background: var(--brown-soft); }
+    .empty { padding: 32px; text-align: center; color: var(--muted); }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 10; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 12px 20px; border-radius: var(--radius); background: var(--brown-dark); color: #fff; opacity: 0; transition: opacity .2s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+    .toast.error { background: var(--danger); }
+    @media (max-width: 720px) { body { padding: 16px; } }
+
+    .search { display: flex; gap: 10px; }
+    .search input { flex: 1; font-size: 17px; }
+    .hint { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+    .quick { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .chip {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--brown-dark);
+      cursor: pointer;
+    }
+    .chip:hover { background: var(--brown-soft); }
+
+    .map-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .map-head h2 { margin: 0; }
+    .links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .map {
+      width: 100%;
+      height: 460px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    @media (max-width: 720px) {
+      .search { flex-direction: column; }
+      .search .btn { justify-content: center; }
+      .map { height: 360px; }
+      .links { width: 100%; }
+      .links a { flex: 1; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <h1>☕ 주변 카페</h1>
+  <p class="sub">동네 이름이나 역 이름을 넣으면 그 근처 카페를 지도로 볼 수 있어요.</p>
+
+  <section class="card">
+    <form class="search" id="search">
+      <input id="place" placeholder="예: 망원동, 성수역, 연남동" autocomplete="off" aria-label="지역이나 역 이름">
+      <button class="btn" type="submit">🔍 지도 보기</button>
+    </form>
+    <div class="quick" id="quick"></div>
+    <p class="hint">구글 지도와 카카오맵 링크만 써서 따로 가입하거나 키를 넣을 필요가 없어요.</p>
+  </section>
+
+  <section class="card">
+    <div class="map-head">
+      <h2 id="map-title">지도</h2>
+      <div class="links" id="links" hidden>
+        <a class="btn" id="kakao" target="_blank" rel="noopener">🗺️ 카카오맵에서 카페 찾기</a>
+        <a class="btn-line" id="google" target="_blank" rel="noopener">구글 지도 크게 보기</a>
+      </div>
+    </div>
+    <div id="map-box"><div class="empty">위에 동네나 역 이름을 넣어 주세요.</div></div>
+  </section>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const RECENT_KEY = 'rivals-recent';
+
+    // 최근에 찾은 동네 (이 브라우저에만 저장, 막혀 있어도 페이지는 동작)
+    function loadRecent() {
+      try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; }
+    }
+    function saveRecent(place) {
+      const list = [place, ...loadRecent().filter(p => p !== place)].slice(0, 5);
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch { /* 저장 못 해도 괜찮음 */ }
+      renderRecent();
+    }
+    function renderRecent() {
+      const list = loadRecent();
+      const label = document.createElement('span');
+      label.className = 'hint';
+      label.style.cssText = 'margin:0;align-self:center';
+      label.textContent = '최근:';
+      // 글자는 textContent로 넣어 특수문자도 안전하게
+      const chips = list.map(p => {
+        const chip = document.createElement('button');
+        chip.className = 'chip';
+        chip.type = 'button';
+        chip.dataset.place = p;
+        chip.textContent = p;
+        return chip;
+      });
+      $('quick').replaceChildren(...(list.length ? [label, ...chips] : []));
+    }
+
+    function show(place) {
+      const query = `${place} 카페`;
+      const q = encodeURIComponent(query);
+
+      // API 키가 필요 없는 구글 지도 임베드 주소
+      const iframe = document.createElement('iframe');
+      iframe.className = 'map';
+      iframe.title = `${place} 주변 카페 지도`;
+      iframe.referrerPolicy = 'no-referrer-when-downgrade';
+      iframe.src = `https://maps.google.com/maps?q=${q}&z=15&hl=ko&output=embed`;
+      $('map-box').replaceChildren(iframe);
+
+      $('map-title').textContent = `📍 ${place} 주변 카페`;
+      $('kakao').href = `https://map.kakao.com/?q=${q}`;
+      $('google').href = `https://www.google.com/maps/search/${q}`;
+      $('links').hidden = false;
+      saveRecent(place);
+    }
+
+    $('search').addEventListener('submit', e => {
+      e.preventDefault();
+      const place = $('place').value.trim();
+      if (!place) {
+        $('place').focus();
+        $('map-box').innerHTML = '<div class="empty">동네나 역 이름을 먼저 넣어 주세요</div>';
+        return;
+      }
+      show(place);
+    });
+
+    $('quick').addEventListener('click', e => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      $('place').value = chip.dataset.place;
+      show(chip.dataset.place);
+    });
+
+    renderRecent();
+  </script>
+</body>
+</html>

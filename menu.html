@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <style>
-    /* 공통 디자인 값: 5개 페이지 모두 같은 블록을 쓴다 */
+    /* 공통 디자인 값: 모든 페이지가 같은 블록을 쓴다 */
     :root {
       --bg: #faf6f0;
       --surface: #ffffff;
@@ -22,60 +22,29 @@
       --font: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
     }
 
+    /* 공통 모양: 모든 페이지가 같은 블록을 쓴다 (여백 · 카드 · 입력칸 · 버튼 · 알림) */
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      padding: 24px;
-      font-family: var(--font);
-      background: var(--surface);
-      color: var(--text);
-      font-size: 16px;
-    }
+    body { margin: 0; padding: 24px; font-family: var(--font); background: var(--surface); color: var(--text); font-size: 16px; line-height: 1.5; }
     h1 { margin: 0 0 4px; font-size: 26px; }
-    .sub { margin: 0 0 24px; color: var(--muted); }
     h2 { margin: 0 0 12px; font-size: 19px; }
-
-    .card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 24px;
-    }
-
-    input, select, button { font: inherit; }
-    input, select {
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface);
-      color: var(--text);
-      min-width: 0;
-    }
-    input:focus, select:focus { outline: 2px solid var(--brown); outline-offset: -1px; }
-
-    .btn {
-      padding: 10px 18px;
-      border: 0;
-      border-radius: 8px;
-      background: var(--brown);
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .btn:hover { background: var(--brown-dark); }
-    .btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
-    .btn-ghost {
-      width: 36px; height: 40px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface);
-      color: var(--brown-dark);
-      font-size: 18px;
-      cursor: pointer;
-    }
+    .sub { margin: 0 0 24px; color: var(--muted); }
+    .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+    input, select, textarea, button { font: inherit; }
+    input, select, textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); min-width: 0; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--brown); outline-offset: -1px; }
+    .btn, .btn-line { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 10px 20px; border-radius: 8px; font-weight: 700; white-space: nowrap; text-decoration: none; cursor: pointer; }
+    .btn { border: 1px solid var(--brown); background: var(--brown); color: #fff; }
+    .btn:hover { background: var(--brown-dark); border-color: var(--brown-dark); }
+    .btn-line { border: 1px solid var(--border); background: var(--surface); color: var(--brown-dark); }
+    .btn-line:hover { background: var(--brown-soft); }
+    .btn:disabled, .btn-line:disabled { border-color: var(--border); background: var(--border); color: var(--muted); cursor: default; }
+    .btn-ghost { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--brown-dark); font-size: 20px; cursor: pointer; }
     .btn-ghost:hover { background: var(--brown-soft); }
+    .empty { padding: 32px; text-align: center; color: var(--muted); }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 10; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 12px 20px; border-radius: var(--radius); background: var(--brown-dark); color: #fff; opacity: 0; transition: opacity .2s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+    .toast.error { background: var(--danger); }
+    @media (max-width: 720px) { body { padding: 16px; } }
 
     /* 메뉴 추가 폼 */
     .add-form {
@@ -93,7 +62,7 @@
     th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border); }
     th { font-size: 14px; color: var(--muted); font-weight: 600; }
     td.name { font-weight: 700; font-size: 17px; min-width: 130px; }
-    .badge-cat { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--brown-soft); color: var(--brown-dark); font-size: 13px; }
+    .badge-cat { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--brown-soft); color: var(--brown-dark); font-size: 13px; white-space: nowrap; }
     .price-input { width: 110px; text-align: right; }
     .stock-box { display: flex; align-items: center; gap: 6px; }
     .stock-input { width: 70px; text-align: center; font-weight: 700; }
@@ -106,19 +75,8 @@
     .summary { display: flex; gap: 16px; margin-bottom: 12px; color: var(--muted); }
     .summary b { color: var(--text); }
     .summary .low b { color: var(--danger); }
-    .empty { padding: 32px; text-align: center; color: var(--muted); }
-
-    .toast {
-      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-      padding: 12px 20px; border-radius: var(--radius);
-      background: var(--brown-dark); color: #fff;
-      opacity: 0; transition: opacity .2s; pointer-events: none;
-    }
-    .toast.show { opacity: 1; }
-    .toast.error { background: var(--danger); }
 
     @media (max-width: 720px) {
-      body { padding: 16px; }
       .add-form { grid-template-columns: 1fr 1fr; }
       .add-form label:first-child { grid-column: 1 / -1; }
       .add-form .btn { grid-column: 1 / -1; }
@@ -174,46 +132,59 @@
     const LOW_STOCK = 5;
 
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const list = document.getElementById('list');
-    const won = n => n.toLocaleString('ko-KR');
+
+    // ---------- 공통 도우미: 모든 페이지가 같은 블록을 쓴다 ----------
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const won = n => (Number(n) || 0).toLocaleString('ko-KR') + '원';
 
     function toast(msg, isError = false) {
-      const el = document.getElementById('toast');
+      const el = $('toast');
       el.textContent = msg;
       el.className = 'toast show' + (isError ? ' error' : '');
       clearTimeout(toast.t);
-      toast.t = setTimeout(() => el.className = 'toast', 2000);
+      toast.t = setTimeout(() => el.className = 'toast', isError ? 4000 : 2500);
     }
 
-    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    // 에러를 사장님이 알아듣는 말로 바꾼다 (원문은 개발자 도구에만 남김)
+    function friendly(err) {
+      console.error(err);
+      const m = String(err?.message ?? err ?? '');
+      if (/failed to fetch|networkerror|load failed/i.test(m)) return '인터넷 연결이 끊긴 것 같아요. 연결을 확인하고 다시 해 주세요';
+      if (/[가-힣]/.test(m)) return m; // 우리가 만든 한국어 안내는 그대로
+      return '잠깐 문제가 생겼어요. 잠시 후 다시 해 주세요';
+    }
+    // ---------- 공통 도우미 끝 ----------
+
+    const list = $('list');
 
     async function load() {
       const { data, error } = await db.from('menus').select('*').order('category').order('name');
       if (error) {
-        list.innerHTML = '<tr><td colspan="5" class="empty">메뉴를 불러오지 못했어요.</td></tr>';
-        return toast('불러오기 실패: ' + error.message, true);
+        list.innerHTML = '<tr><td colspan="5" class="empty">메뉴를 불러오지 못했어요. 잠시 후 새로고침해 주세요</td></tr>';
+        return toast(friendly(error), true);
       }
       render(data);
     }
 
     function render(menus) {
       const low = menus.filter(m => m.stock <= LOW_STOCK).length;
-      document.getElementById('summary').innerHTML =
+      $('summary').innerHTML =
         `<span>전체 <b>${menus.length}</b>개</span><span class="low">재고 부족 <b>${low}</b>개</span>`;
 
       if (!menus.length) {
-        list.innerHTML = '<tr><td colspan="5" class="empty">아직 메뉴가 없어요. 위에서 추가해 주세요.</td></tr>';
+        list.innerHTML = '<tr><td colspan="5" class="empty">아직 메뉴가 없어요. 위에서 추가해 주세요</td></tr>';
         return;
       }
       list.innerHTML = menus.map(m => `
         <tr data-id="${m.id}" class="${m.stock <= LOW_STOCK ? 'low' : ''}">
           <td class="name">${esc(m.name)}${m.stock <= LOW_STOCK ? '<span class="badge-low">재고 부족</span>' : ''}</td>
           <td class="col-cat"><span class="badge-cat">${esc(m.category)}</span></td>
-          <td><input class="price-input" type="number" min="0" step="100" value="${m.price}" data-orig="${m.price}"></td>
+          <td><input class="price-input" type="number" min="0" step="100" value="${m.price}" data-orig="${m.price}" aria-label="${esc(m.name)} 가격"></td>
           <td>
             <div class="stock-box">
               <button class="btn-ghost" data-step="-1" aria-label="재고 1 빼기">−</button>
-              <input class="stock-input" type="number" min="0" value="${m.stock}" data-orig="${m.stock}">
+              <input class="stock-input" type="number" min="0" value="${m.stock}" data-orig="${m.stock}" aria-label="${esc(m.name)} 재고">
               <button class="btn-ghost" data-step="1" aria-label="재고 1 더하기">+</button>
             </div>
           </td>
@@ -245,15 +216,28 @@
       }
 
       if (e.target.classList.contains('save')) {
-        const price = parseInt(row.querySelector('.price-input').value, 10);
-        const stock = parseInt(row.querySelector('.stock-input').value, 10);
-        if (!(price >= 0) || !(stock >= 0)) return toast('가격과 재고는 0 이상 숫자로 넣어 주세요.', true);
+        const priceInput = row.querySelector('.price-input');
+        const stockInput = row.querySelector('.stock-input');
+        const price = parseInt(priceInput.value, 10);
+        const stock = parseInt(stockInput.value, 10);
+        if (!(price >= 0) || !(stock >= 0)) return toast('가격과 재고는 0 이상의 숫자로 넣어 주세요', true);
+
+        // 바뀐 칸만 보낸다. 재고는 화면을 연 뒤 다른 곳(판매 등)에서 바뀌었으면 덮어쓰지 않는다.
+        const fields = {};
+        if (priceInput.value !== priceInput.dataset.orig) fields.price = price;
+        if (stockInput.value !== stockInput.dataset.orig) fields.stock = stock;
+        let query = db.from('menus').update(fields).eq('id', row.dataset.id);
+        if ('stock' in fields) query = query.eq('stock', Number(stockInput.dataset.orig));
 
         e.target.disabled = true;
-        const { error } = await db.from('menus').update({ price, stock }).eq('id', row.dataset.id);
+        const { data, error } = await query.select('id');
         if (error) {
           e.target.disabled = false;
-          return toast('저장 실패: ' + error.message, true);
+          return toast('저장하지 못했어요. ' + friendly(error), true);
+        }
+        if (!data.length) {
+          toast('그사이 판매가 들어와 재고가 바뀌었어요. 새 숫자로 다시 불러왔으니 확인하고 다시 저장해 주세요', true);
+          return load();
         }
         toast('저장했어요');
         load();
@@ -268,7 +252,7 @@
       }
     });
 
-    document.getElementById('add-form').addEventListener('submit', async e => {
+    $('add-form').addEventListener('submit', async e => {
       e.preventDefault();
       const form = e.target;
       const f = form.elements; // form.name은 폼 자체의 name 속성이라 elements로 읽는다
@@ -278,15 +262,16 @@
         price: parseInt(f.price.value, 10),
         stock: parseInt(f.stock.value, 10),
       };
-      if (!menu.name) return toast('메뉴 이름을 넣어 주세요.', true);
+      if (!menu.name) return toast('메뉴 이름을 넣어 주세요', true);
+      if (!(menu.price >= 0) || !(menu.stock >= 0)) return toast('가격과 재고는 0 이상의 숫자로 넣어 주세요', true);
 
       const btn = form.querySelector('button');
       btn.disabled = true;
       const { error } = await db.from('menus').insert(menu);
       btn.disabled = false;
-      if (error) return toast('추가 실패: ' + error.message, true);
+      if (error) return toast('메뉴를 추가하지 못했어요. ' + friendly(error), true);
 
-      toast(`'${menu.name}' 추가했어요`);
+      toast(`'${menu.name}' 메뉴를 추가했어요 (${won(menu.price)})`);
       form.reset();
       f.name.focus();
       load();

@@ -10,7 +10,7 @@ tools: Read, Grep, Glob
 
 - `CLAUDE.md`: 프로젝트 규칙 (페이지 5개, npm 없음, Supabase · `cafe-ai` 사용법, 공통 디자인 블록)
 - `PRD.md`: 기능 요구사항
-- 점검 대상: `index.html`, `sales.html`, `menu.html`, `reviews.html`, `promo.html`, `supabase/functions/cafe-ai/index.ts`, `serve.ps1`
+- 점검 대상: `index.html`, `sales.html`, `menu.html`, `reviews.html`, `promo.html`, `rivals.html`, `supabase/functions/cafe-ai/index.ts`, `serve.ps1`
 
 요청에 특정 파일이 있으면 그 파일을 중심으로 보되, 다른 페이지와 비교해야 하는 항목은 다른 파일도 읽는다.
 
@@ -32,8 +32,8 @@ tools: Read, Grep, Glob
    - AI 응답이 1~2분 걸릴 수 있는데 진행 중 표시나 버튼 잠금 · 해제(`finally`)가 없는 곳
    - 실패했을 때 사장님이 알아들을 수 있는 한국어 안내가 없는 곳
 4. **페이지마다 다른 동작**
-   - 맨 위 `:root` CSS 변수 블록이 5개 파일에서 글자 하나라도 다른 곳
-   - 같은 일을 하는 코드가 페이지마다 다르게 동작하는 곳: `toast()`, `esc()`, 금액 표시(`won`), 재고 부족 기준(`LOW_STOCK = 5`), AI 호출(`askAI`), 클립보드 복사 실패 처리
+   - `:root` 변수 블록, "공통 모양" CSS 블록, "공통 도우미" JS 블록, "AI 호출" JS 블록이 파일마다 글자 하나라도 다른 곳 (`CLAUDE.md` 디자인 규칙 참고)
+   - 같은 일을 하는 코드가 페이지마다 다르게 동작하는 곳: 재고 부족 기준(`LOW_STOCK = 5`), 클립보드 복사 실패 처리, 공통 블록을 안 쓰고 따로 만든 버튼 · 토스트
    - supabase-js CDN 버전, 글꼴 링크, 좁은 화면(`@media`) 처리 방식의 차이
    - 화면 문구 말투 차이 (해요체가 기준)
 

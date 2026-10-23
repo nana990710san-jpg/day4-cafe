@@ -141,7 +141,7 @@ AI는 Supabase Edge Function **`cafe-ai` 하나**로 처리한다. 페이지는 
 |---|---|---|
 | `menus` ✅ | id, name, category, price, stock, created_at | 메뉴와 재고 |
 | `sales` ✅ | id, menu_id → menus.id, menu_name, quantity, amount, sold_at | 판매 기록 |
-| `reviews` ✅ | id, rating(1~5), content, sentiment(긍정/중립/부정), reply, created_at | 리뷰와 답글 |
+| `reviews` ✅ | id, rating(1~5), content, sentiment(좋음/보통/아쉬움), reply, created_at | 리뷰와 답글 |
 | `promos` (미정) | id, menu_id, channel, tone, content, created_at | 저장한 홍보 문구 |
 
 ✅ = 2026-10-23 생성됨 (migration `create_menus_sales_reviews`).
