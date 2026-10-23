@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>홍보</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <style>
+    /* 공통 디자인 값: 5개 페이지 모두 같은 블록을 쓴다 */
+    :root {
+      --bg: #faf6f0;
+      --surface: #ffffff;
+      --brown: #6f4e37;
+      --brown-dark: #4a3324;
+      --brown-soft: #efe4d6;
+      --text: #2b211a;
+      --muted: #8a7a6c;
+      --border: #e6dccf;
+      --danger: #c0392b;
+      --radius: 12px;
+      --font: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: var(--font);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 16px;
+    }
+    h1 { margin: 0 0 4px; font-size: 26px; }
+    .sub { margin: 0 0 24px; color: var(--muted); }
+    h2 { margin: 0 0 12px; font-size: 19px; }
+    .step { margin: 0 0 10px; font-size: 15px; font-weight: 700; color: var(--brown-dark); }
+
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    button, select { font: inherit; }
+    select {
+      width: 100%;
+      max-width: 420px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 17px;
+    }
+    select:focus { outline: 2px solid var(--brown); outline-offset: -1px; }
+    .btn {
+      padding: 12px 26px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--brown);
+      color: #fff;
+      font-weight: 700;
+      font-size: 17px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--brown-dark); }
+    .btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
+    .btn-line {
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--brown-dark);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-line:hover { background: var(--brown-soft); }
+
+    .field { margin-bottom: 20px; }
+
+    /* 분위기 고르기 */
+    .moods { display: flex; gap: 10px; flex-wrap: wrap; }
+    .mood {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      min-width: 120px;
+      padding: 14px 18px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .mood:hover { border-color: var(--brown); }
+    .mood.selected { border-color: var(--brown); background: var(--brown-soft); font-weight: 700; }
+    .mood .emoji { font-size: 26px; }
+
+    .go { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .thinking { color: var(--muted); }
+
+    /* 결과 문구 */
+    .results { display: grid; gap: 14px; }
+    .caption {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+    }
+    .caption-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .caption-head b { color: var(--brown); }
+    .caption p { margin: 0; font-size: 17px; line-height: 1.7; white-space: pre-wrap; }
+    .empty { padding: 24px; text-align: center; color: var(--muted); }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+      padding: 12px 20px; border-radius: var(--radius);
+      background: var(--brown-dark); color: #fff;
+      opacity: 0; transition: opacity .2s; pointer-events: none;
+      max-width: calc(100% - 32px);
+    }
+    .toast.show { opacity: 1; }
+    .toast.error { background: var(--danger); }
+
+    @media (max-width: 720px) {
+      body { padding: 16px; }
+      .mood { flex: 1; min-width: 0; padding: 12px 8px; }
+      .go .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <h1>📣 홍보</h1>
+  <p class="sub">메뉴와 분위기를 고르면 AI가 SNS 홍보 문구 3개를 만들어 줘요. 마음에 드는 문구를 복사해서 올리세요.</p>
+
+  <section class="card">
+    <div class="field">
+      <p class="step">① 홍보할 메뉴</p>
+      <select id="menu"><option value="">불러오는 중…</option></select>
+    </div>
+
+    <div class="field">
+      <p class="step">② 분위기</p>
+      <div class="moods" id="moods">
+        <button class="mood selected" data-mood="따뜻하게"><span class="emoji">☕</span>따뜻하게</button>
+        <button class="mood" data-mood="재미있게"><span class="emoji">😆</span>재미있게</button>
+        <button class="mood" data-mood="짧게"><span class="emoji">✂️</span>짧게</button>
+      </div>
+    </div>
+
+    <div class="go">
+      <button class="btn" id="make" disabled>✨ 문구 만들기</button>
+      <span class="thinking" id="thinking" hidden>AI가 문구를 쓰고 있어요… (1~2분 걸릴 수 있어요)</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>홍보 문구</h2>
+    <div class="results" id="results"><div class="empty">메뉴와 분위기를 고르고 "문구 만들기"를 눌러 주세요.</div></div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://nmjnzcmxckaftvztfjhj.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_6xkxdgP44bIiejCxat0SjA_o8E-R5EO';
+    const AI_URL = SUPABASE_URL + '/functions/v1/cafe-ai';
+
+    // 버튼 이름 → AI에게 보낼 분위기 설명
+    const MOODS = {
+      '따뜻하게': '따뜻하고 다정하게',
+      '재미있게': '재미있고 유쾌하게, 말장난도 좋아요',
+      '짧게': '아주 짧고 간결하게',
+    };
+
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    let menus = [];
+    let mood = '따뜻하게';
+
+    function toast(msg, isError = false) {
+      const el = $('toast');
+      el.textContent = msg;
+      el.className = 'toast show' + (isError ? ' error' : '');
+      clearTimeout(toast.t);
+      toast.t = setTimeout(() => el.className = 'toast', isError ? 4000 : 2500);
+    }
+
+    // cafe-ai 호출 (무료 모델이라 1~2분 걸리거나 실패할 수 있음)
+    async function askAI(type, data) {
+      let res;
+      try {
+        res = await fetch(AI_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type, data }),
+        });
+      } catch {
+        throw new Error('인터넷 연결을 확인해 주세요.');
+      }
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || `AI 요청 실패 (HTTP ${res.status})`);
+      return body;
+    }
+
+    async function loadMenus() {
+      const { data, error } = await db.from('menus').select('id, name, category, price').order('category').order('name');
+      if (error) {
+        $('menu').innerHTML = '<option value="">메뉴를 불러오지 못했어요</option>';
+        return toast('메뉴 불러오기 실패: ' + error.message, true);
+      }
+      menus = data;
+      $('menu').innerHTML = '<option value="">메뉴를 골라 주세요</option>' +
+        data.map(m => `<option value="${m.id}">${esc(m.name)} · ${m.price.toLocaleString('ko-KR')}원 (${esc(m.category)})</option>`).join('');
+    }
+
+    $('menu').addEventListener('change', () => { $('make').disabled = !$('menu').value; });
+
+    $('moods').addEventListener('click', e => {
+      const btn = e.target.closest('.mood');
+      if (!btn) return;
+      mood = btn.dataset.mood;
+      document.querySelectorAll('.mood').forEach(b => b.classList.toggle('selected', b === btn));
+    });
+
+    $('make').addEventListener('click', async () => {
+      const menu = menus.find(m => m.id === Number($('menu').value));
+      if (!menu) return toast('메뉴를 먼저 골라 주세요.', true);
+
+      $('make').disabled = true;
+      $('thinking').hidden = false;
+      try {
+        const data = { menu: { name: menu.name, price: menu.price }, mood: MOODS[mood] };
+        if (mood === '짧게') data.note = '각 문구는 한 문장 + 해시태그 2~3개로 짧게';
+        const ai = await askAI('promo', data);
+        $('results').innerHTML = ai.captions.map((c, i) => `
+          <div class="caption">
+            <div class="caption-head"><b>문구 ${i + 1}</b><button class="btn-line" data-i="${i}">복사</button></div>
+            <p>${esc(c)}</p>
+          </div>`).join('');
+        $('results').dataset.captions = JSON.stringify(ai.captions);
+        toast('문구 3개를 만들었어요');
+      } catch (err) {
+        toast(err.message, true);
+      } finally {
+        $('make').disabled = !$('menu').value;
+        $('thinking').hidden = true;
+      }
+    });
+
+    $('results').addEventListener('click', async e => {
+      const btn = e.target.closest('button[data-i]');
+      if (!btn) return;
+      const text = JSON.parse($('results').dataset.captions || '[]')[btn.dataset.i];
+      try {
+        await navigator.clipboard.writeText(text);
+        toast('문구를 복사했어요');
+      } catch {
+        toast('복사가 막혀 있어요. 글을 길게 눌러 직접 복사해 주세요.', true);
+      }
+    });
+
+    loadMenus();
+  </script>
+</body>
+</html>

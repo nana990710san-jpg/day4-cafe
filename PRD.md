@@ -114,18 +114,20 @@ AI는 Supabase Edge Function **`cafe-ai` 하나**로 처리한다. 페이지는 
 
 | type | 쓰는 곳 | 보내는 내용 | 받는 내용 |
 |---|---|---|---|
-| `review_reply` | reviews.html | 리뷰 내용, 별점, 작성자 | 답글 초안 (2~4문장) |
-| `promo` | promo.html | 메뉴 이름·가격, 채널, 분위기, 메모 | 홍보 문구 초안 |
-| `briefing` | index.html (홈) | 오늘·어제·7일 매출 요약, 재고 부족 목록, 새 리뷰 수 | 오늘 브리핑 3~5줄 |
+| `review` | reviews.html | 리뷰 내용, 별점 | 감정(좋음/보통/아쉬움) + 답글 초안 (2~4문장) |
+| `promo` | promo.html | 메뉴 이름·가격, 분위기, 메모 | SNS 홍보 문구 3개 |
+| `brief` | index.html (홈) | 오늘 숫자(매출, 판매 수, 재고 부족, 새 리뷰 등) | 오늘 브리핑 3줄 |
+
+✅ 2026-10-23 배포됨 (`supabase/functions/cafe-ai/index.ts`, verify_jwt 꺼짐). 모델: `liquid/lfm-2.5-2.6b:free` → `google/gemma-4-31b-it:free`.
 
 요청 · 응답 형식 (예시):
 
 ```json
 // 요청
-{ "type": "review_reply", "data": { "rating": 5, "author": "민지", "content": "라떼가 정말 맛있어요!" } }
+{ "type": "review", "data": { "rating": 5, "content": "라떼가 정말 맛있어요!" } }
 
 // 응답
-{ "text": "민지님, 라떼를 맛있게 드셔 주셔서 감사해요! ..." }
+{ "type": "review", "model": "…", "sentiment": "좋음", "reply": "라떼를 맛있게 드셔 주셔서 감사해요! ..." }
 ```
 
 규칙:
@@ -182,8 +184,8 @@ AI는 Supabase Edge Function **`cafe-ai` 하나**로 처리한다. 페이지는 
 
 ## 13. 정해야 할 것
 
-- [ ] 홈 내용(숫자 카드 · 그래프 · 브리핑)을 iframe에 어떻게 띄울지 (index 안의 홈 영역 vs 별도 처리)
-- [ ] 그래프 라이브러리 (예: Chart.js CDN)
-- [ ] `cafe-ai`가 쓸 AI 모델과 비밀값 이름
+- [x] 홈 내용(숫자 카드 · 그래프 · 브리핑): index 안의 `#home` 영역에 보여줌 (홈일 때 iframe 숨김)
+- [x] 그래프 라이브러리: 쓰지 않음 (CSS 막대)
+- [x] `cafe-ai` 모델과 비밀값: OpenRouter 무료 모델 2개, Secrets `OPENROUTER_API_KEY`
 - [ ] 재고 단위: 메뉴(잔) 단위로 셀지, 원재료(원두 · 우유) 단위로 셀지
 - [ ] RLS 정책 (로그인 없이 쓰는 동안 데이터 보호 방법)
