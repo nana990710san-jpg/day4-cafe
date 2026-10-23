@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 기술 조건 (PRD에서 정한 제약)
 
 - **페이지 = HTML 파일 하나.** `index.html`, `sales.html`, `menu.html`, `reviews.html`, `promo.html`, `rivals.html`(주변 카페, 사용자 요청으로 추가) 6개. 사용자가 요청하지 않으면 페이지를 더 만들지 않는다.
-- **손님용 홈페이지 `homepage.html`은 대시보드와 별개다** ([PRD-homepage.md](PRD-homepage.md)). 아래 "공통 블록"을 쓰지 않고 자기 `:root`를 가진다. 대시보드도 같은 무화과 · 레몬 · 레이스 톤을 쓰므로, 색 값을 바꿀 때는 두 쪽을 함께 맞춘다. DB는 `menus` · `reviews`를 **select만** 하고 쓰기 코드를 넣지 않으며, 대시보드로 가는 링크를 두지 않는다. 가게 정보(이름 · 주소 · 시간 · 시그니처)는 파일 맨 위 `CAFE` 객체에서만 고친다. 무드 사진 `무화과 레이스 (1~7).jpg`는 참고용이라 페이지에 넣지 않는다(출처 불명, 한 장은 Pinterest 표시).
+- **손님용 홈페이지 `homepage.html`은 대시보드와 별개다** ([PRD-homepage.md](PRD-homepage.md)). 아래 "공통 블록"을 쓰지 않고 자기 `:root`를 가진다. 대시보드도 같은 무화과 · 레몬 · 레이스 톤을 쓰므로, 색 값을 바꿀 때는 두 쪽을 함께 맞춘다. DB는 `menus` · `reviews`를 **select만** 하고 쓰기 코드를 넣지 않으며, 대시보드로 가는 링크를 두지 않는다. 가게 정보(이름 · 주소 · 시간 · 시그니처)는 파일 맨 위 `CAFE` 객체에서만 고친다. 무드 사진 `무화과 레이스 (1~7).jpg`는 참고용이라 페이지에 넣지 않는다(출처 불명, 한 장은 Pinterest 표시). 시그니처 카드 사진은 사용자가 준 `assets/sig-fig-latte.webp` · `sig-lemon-basil-ade.webp` · `sig-fig-tart.webp`이고 `CAFE.signatures[].photo`로 지정한다(없으면 SVG 그림). 홈페이지는 GitHub `day4-homepage` 저장소(옆 폴더 `../day4-homepage`, 파일명 `index.html`)에도 있으므로 고치면 `homepage.html`과 `assets/sig-*.webp`를 그쪽에 똑같이 복사한다.
 - `rivals.html`은 API 키 없이 구글 지도 임베드(`maps.google.com/maps?q=…&output=embed`)와 카카오맵 검색 링크만 쓴다. Supabase를 쓰지 않는다.
 - **npm · 빌드 도구 · 프레임워크 없음.** 라이브러리(Supabase JS, 그래프 라이브러리)는 CDN `<script>`로만 불러온다. `package.json`을 만들지 않는다.
 - **DB:** 사용자의 Supabase 프로젝트 `day4-cafe`. 브라우저에는 공개 키(publishable/anon)만 둔다.
@@ -25,6 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 구조 (big picture)
 
 - `index.html`은 **틀**이다: 왼쪽 메뉴 + 가운데 `<iframe>`. 메뉴를 누르면 iframe `src`가 다른 페이지 HTML로 바뀐다. 홈을 누르면 iframe을 숨기고 index 안의 `#home` 영역(숫자 카드 4개 · 7일 매출 막대(CSS, 라이브러리 없음) · AI 오늘 브리핑)을 보여주며, 홈에 올 때마다 숫자를 다시 읽는다.
+- 왼쪽 메뉴 맨 아래 "🌐 홈페이지"(`.nav-guest`)는 iframe을 쓰지 않는 보통 링크(`<a href="homepage.html">`)다. 누르면 그 탭이 손님용 홈페이지로 넘어가고, 브라우저 뒤로 가기로 대시보드에 돌아온다. `data-page`가 없어서 `navItems`(`.nav-item[data-page]`)에 들어가지 않는다. 반대로 홈페이지에서 대시보드로 가는 링크는 두지 않는다.
 - 나머지 페이지는 iframe 안에서 단독으로 동작한다. 왼쪽 메뉴를 빠르게 바꿔 눌러도 마지막 클릭만 반영한다(`openSeq`).
 - `menu.html`은 바뀐 칸만 저장하고, 재고는 `.eq('stock', 화면을 열 때 값)` 조건으로 저장한다. 그사이 판매로 재고가 바뀌었으면 덮어쓰지 않고 다시 불러온다. 각 파일이 스스로 Supabase 클라이언트를 만들고 필요한 테이블을 읽고 쓴다.
 - 판매 저장 · 취소는 `sales`에 직접 insert/delete 하지 말고 DB 함수 `record_sale(p_menu_id, p_quantity)` / `cancel_sale(p_sale_id)`를 `db.rpc()`로 부른다. 이 함수가 판매 기록과 `menus.stock` 차감·복구를 한 트랜잭션으로 처리하고, 재고보다 많이 팔면 에러를 낸다 (security invoker, anon에 EXECUTE).
@@ -36,10 +37,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Supabase 주소와 공개 키(`sb_publishable_…`)는 각 페이지 `<script>` 맨 위 `SUPABASE_URL` / `SUPABASE_KEY` 상수로 넣는다 (menu.html 참고). supabase-js는 CDN `@supabase/supabase-js@2.45.4` UMD로 불러온다.
 
-톤: 손님용 홈페이지와 같은 **무화과 · 레몬 · 레이스**. 아이보리 바탕, 무화과 자주(`--fig`) 주색, 레몬 · 바질 · 금빛 강조, 제목과 큰 숫자는 명조(`--serif` Gowun Batang), 본문은 Pretendard. 밝은 카드에는 아주 옅은 무화과색 점 그물(`--net`)을 깐다. 버건디 면(index 왼쪽 메뉴, 대표 숫자 카드 `.stat.dark` · `.total.dark`)에는 `--lace` = `assets/lace-ivory.png`를 깐다. 이 PNG는 사용자가 준 레이스 사진에서 **실만 따낸 아이보리 선(투명 바탕, 최대 불투명도 22%)**이다. 사진 원본은 저장소에 넣지 않는다. 금색 레이스 무늬는 "너무 튄다"고 해서 대시보드에서 모두 뺐다(`--gold`는 리뷰 별 색에만 남음). 무늬 진하기를 바꾸려면 PNG를 다시 만든다(원본에서 밝기 192~226을 0~1로 바꾸고 `-Max` 배율을 곱함). CSS opacity로 바꾸면 글자까지 흐려진다. 버튼은 알약 모양. 큰 글자 · 44px 버튼 같은 사장님용 크기 규칙은 그대로다. Google Fonts 링크(Cormorant Garamond, Gowun Batang)는 각 페이지 `<head>`에 같은 줄로 둔다.
+톤: 손님용 홈페이지와 같은 **무화과 · 레몬 · 레이스**. 아이보리 바탕, 무화과 자주(`--fig`) 주색, 레몬 · 바질 · 금빛 강조, 제목과 큰 숫자는 명조(`--serif` Gowun Batang), 본문은 Pretendard. 밝은 카드에는 아주 옅은 무화과색 점 그물(`--net`)을 깐다. 버건디 면(index 왼쪽 메뉴 `--fig-deep`, 대표 숫자 카드 `.stat.dark` · `.total.dark` `--fig`)은 **무늬 없는 단색**이다. 사용자가 금색 레이스("너무 튄다")와 사진에서 딴 아이보리 레이스를 차례로 거절하고 "메뉴 · 재고의 추가 버튼 같은 버건디 단색"을 골랐으므로, 대시보드에 레이스 무늬나 레이스 밑단(물결 테두리)을 다시 넣지 않는다. `--gold`는 리뷰 별 색에만 쓴다. 버튼은 알약 모양. 큰 글자 · 44px 버튼 같은 사장님용 크기 규칙은 그대로다. Google Fonts 링크(Cormorant Garamond, Gowun Batang)는 각 페이지 `<head>`에 같은 줄로 둔다.
 
 대시보드 6개 페이지(homepage.html 제외)가 글자 하나까지 같은 블록을 쓴다. 바꿀 때는 6개 파일을 모두 똑같이 고친다:
-- CSS `:root` 변수 블록 (색 `--fig` · `--fig-deep` · `--fig-soft` · `--linen` · `--lemon` · `--basil` · `--gold` · `--danger-soft`, 글꼴 `--font` · `--serif` · `--accent`, 무늬 `--lace` · `--net`). index.html의 "준비중" 화면이 이 블록을 정규식으로 복사하므로 값 안에 `}`를 넣지 않는다
+- CSS `:root` 변수 블록 (색 `--fig` · `--fig-deep` · `--fig-soft` · `--linen` · `--lemon` · `--basil` · `--gold` · `--danger-soft`, 글꼴 `--font` · `--serif` · `--accent`, 점 그물 `--net`). index.html의 "준비중" 화면이 이 블록을 정규식으로 복사하므로 값 안에 `}`를 넣지 않는다
 - CSS "공통 모양" 블록 (body 여백 24px/좁은 화면 16px, 명조 `h1` · `h2`, `.card`, 입력칸, `.btn` · `.btn-line` 높이 44px 알약, `.btn-ghost` 44×44 원, `.toast`)
 - JS "공통 도우미" 블록 (`$`, `esc`, `won`, `toast`, `friendly`) — rivals.html은 쓰지 않아 없음
 - JS "AI 호출" 블록 (`askAI`) — index · reviews · promo

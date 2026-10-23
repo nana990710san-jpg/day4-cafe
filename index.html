@@ -28,7 +28,6 @@
       --font: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
       --serif: "Gowun Batang", "Noto Serif KR", serif;
       --accent: "Cormorant Garamond", "Gowun Batang", serif;
-      --lace: url("assets/lace-ivory.png") 0 0 / 300px auto;  /* 사용자가 준 레이스 사진에서 실만 따낸 아이보리 무늬 (투명 바탕) */
       --net: radial-gradient(circle, rgba(94, 42, 58, .06) 1px, transparent 1.3px) 0 0 / 7px 7px;
     }
 
@@ -67,18 +66,12 @@
       z-index: 1;
       width: 220px;
       flex-shrink: 0;
-      /* 버건디 바탕 위에 아이보리 레이스 무늬 (--lace) */
-      background: var(--lace), var(--fig-deep);
+      background: var(--fig-deep);
       color: var(--bg);
       display: flex;
       flex-direction: column;
       padding: 20px 12px;
       gap: 4px;
-    }
-    /* 레이스 밑단처럼 물결진 오른쪽 테두리 */
-    .sidebar::after {
-      content: ""; position: absolute; top: 0; bottom: 0; right: -12px; width: 12px; pointer-events: none;
-      background: radial-gradient(circle at 0 12px, var(--fig-deep) 11px, transparent 11.5px) repeat-y 0 0 / 12px 24px;
     }
     .brand { display: flex; flex-direction: column; padding: 8px 12px 24px; white-space: nowrap; font-family: var(--serif); font-size: 22px; font-weight: 700; }
     .brand i { font-family: var(--accent); font-weight: 400; font-size: 17px; color: var(--lemon); }
@@ -96,14 +89,14 @@
       font-weight: 600;
       text-align: left;
       cursor: pointer;
-      text-shadow: 0 1px 3px rgba(69, 32, 44, .8); /* 레이스 무늬 위에서도 글자가 또렷하게 */
     }
     .nav-item:hover { background: rgba(69, 32, 44, .55); }
-    .nav-item.active { background: var(--bg); color: var(--fig); font-weight: 700; text-shadow: none; }
+    .nav-item.active { background: var(--bg); color: var(--fig); font-weight: 700; }
     .nav-item .icon { font-size: 20px; width: 24px; text-align: center; }
+    .nav-guest { margin-top: 16px; text-decoration: none; }
 
     /* 가운데 화면 */
-    .main { flex: 1; min-width: 0; padding: 16px 16px 16px 28px; }
+    .main { flex: 1; min-width: 0; padding: 16px; }
     .main iframe, .home {
       width: 100%;
       height: 100%;
@@ -116,7 +109,8 @@
     .home { overflow-y: auto; padding: 24px; }
     .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
     .stat { background: var(--linen); color: var(--fig-deep); border-radius: var(--radius); padding: 16px 20px; }
-    .stat.dark { background: var(--lace), var(--fig); color: var(--bg); }
+    /* 무늬 없이 버건디만 (메뉴 · 재고의 "추가" 버튼과 같은 색) */
+    .stat.dark { background: var(--fig); color: var(--bg); }
     .stat.alert { background: var(--danger-soft); color: var(--danger); }
     .stat .label { font-size: 14px; opacity: .85; }
     .stat .value { margin-top: 4px; font-family: var(--serif); font-size: clamp(20px, 2.4vw, 28px); font-weight: 700; white-space: nowrap; }
@@ -153,7 +147,7 @@
       .brand { align-items: center; font-size: 24px; padding: 8px 0 20px; }
       .brand .label, .nav-item .label { display: none; }
       .nav-item { justify-content: center; padding: 14px 0; }
-      .main { padding: 8px 8px 8px 20px; }
+      .main { padding: 8px; }
       .home { padding: 16px; }
       .stat-grid { grid-template-columns: 1fr 1fr; }
       .stat .value { font-size: 24px; }
@@ -171,6 +165,8 @@
     <button class="nav-item" data-page="reviews.html"><span class="icon">💬</span><span class="label">리뷰</span></button>
     <button class="nav-item" data-page="promo.html"><span class="icon">📣</span><span class="label">홍보</span></button>
     <button class="nav-item" data-page="rivals.html"><span class="icon">📍</span><span class="label">주변 카페</span></button>
+    <!-- 손님용 홈페이지: iframe에 띄우지 않고 그 파일로 바로 넘어간다 (data-page 없음) -->
+    <a class="nav-item nav-guest" href="homepage.html"><span class="icon">🌐</span><span class="label">홈페이지</span></a>
   </nav>
 
   <main class="main">
@@ -268,7 +264,7 @@
     // ---------- 왼쪽 메뉴 → 가운데 화면 ----------
     const view = $('view');
     const home = $('home');
-    const navItems = document.querySelectorAll('.nav-item');
+    const navItems = document.querySelectorAll('.nav-item[data-page]'); // 홈페이지 링크(.nav-guest)는 빼고
     let openSeq = 0; // 메뉴를 빠르게 바꿔 누르면 마지막 클릭만 반영
 
     // iframe 안에 보여줄 "준비중" 화면 (index와 같은 색·글꼴)

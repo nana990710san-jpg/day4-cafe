@@ -122,8 +122,12 @@
     /* ---------- ③ 시그니처 ---------- */
     .signatures { --edge: var(--ivory); background: var(--ivory); }
     .sig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-    .sig { position: relative; padding: 28px 24px 30px; border: 1px solid var(--line); border-radius: 200px 200px 16px 16px; background: #fffdf8; text-align: center; overflow: hidden; }
-    .sig .halo { width: 150px; height: 150px; margin: 6px auto 18px; border-radius: 50%; display: grid; place-items: center; background: var(--lace), var(--net), var(--tint, var(--linen)); }
+    .sig { position: relative; padding: 0 0 30px; border: 1px solid var(--line); border-radius: 200px 200px 16px 16px; background: #fffdf8; text-align: center; overflow: hidden; }
+    .sig-body { padding: 0 24px; }
+    /* 메뉴 사진: 카드의 아치 모양 그대로 위쪽을 채운다 */
+    .sig .photo { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; margin-bottom: 20px; background: var(--tint, var(--linen)); transition: transform .6s ease; }
+    .sig:hover .photo { transform: scale(1.03); }
+    .sig .halo { width: 150px; height: 150px; margin: 34px auto 18px; border-radius: 50%; display: grid; place-items: center; background: var(--lace), var(--net), var(--tint, var(--linen)); }
     .sig .halo svg { width: 92px; }
     .sig .tag { font-family: var(--accent); font-style: italic; font-size: 18px; color: var(--gold); }
     .sig h3 { margin: 2px 0 10px; font-size: 21px; color: var(--fig); }
@@ -407,10 +411,11 @@
       phone: '',              // 예: '02-123-4567'
       instagram: '',          // 예: 'golmok_cafe' (@ 없이)
       // 시그니처: name이 메뉴판(DB)의 메뉴 이름과 같으면 가격을 DB에서 가져와요
+      // photo가 있으면 사진을, 없으면 art 그림을 보여줘요
       signatures: [
-        { name: '무화과 크림 라떼', tag: 'Fig latte', art: 'fig-half', tint: '#f3dcd6', desc: '잘 익은 무화과를 갈아 넣은 우유 위에 부드러운 크림을 올렸어요' },
-        { name: '레몬 바질 에이드', tag: 'Lemon & basil', art: 'lemon', tint: '#f6e7a8', desc: '매일 아침 짠 레몬에 창가의 바질 향을 살짝 더했어요' },
-        { name: '무화과 크림치즈 타르트', tag: 'Fig tart', art: 'tart', tint: '#efe2c4', desc: '바삭한 타르트에 크림치즈와 반으로 가른 무화과를 듬뿍' },
+        { name: '무화과 크림 라떼', tag: 'Fig latte', art: 'fig-half', tint: '#f3dcd6', photo: 'assets/sig-fig-latte.webp', desc: '잘 익은 무화과를 갈아 넣은 우유 위에 부드러운 크림을 올렸어요' },
+        { name: '레몬 바질 에이드', tag: 'Lemon & basil', art: 'lemon', tint: '#f6e7a8', photo: 'assets/sig-lemon-basil-ade.webp', desc: '매일 아침 짠 레몬에 창가의 바질 향을 살짝 더했어요' },
+        { name: '무화과 크림치즈 타르트', tag: 'Fig tart', art: 'tart', tint: '#efe2c4', photo: 'assets/sig-fig-tart.webp', desc: '바삭한 타르트에 크림치즈와 반으로 가른 무화과를 듬뿍' },
       ],
     };
     // ==========================================================================
@@ -479,11 +484,15 @@
     function renderSignatures(priceByName = {}) {
       $('sig-grid').innerHTML = CAFE.signatures.map(s => `
         <article class="sig reveal in" style="--tint:${esc(s.tint)}">
-          <div class="halo"><svg viewBox="${ART_BOX[s.art]}" aria-hidden="true"><use href="#${s.art}"/></svg></div>
-          <span class="tag">${esc(s.tag)}</span>
-          <h3>${esc(s.name)}</h3>
-          <p>${esc(s.desc)}</p>
-          ${priceByName[s.name] ? `<span class="price">${won(priceByName[s.name])}</span>` : ''}
+          ${s.photo
+            ? `<img class="photo" src="${esc(s.photo)}" alt="${esc(s.name)} 사진" width="400" height="500" decoding="async">`
+            : `<div class="halo"><svg viewBox="${ART_BOX[s.art]}" aria-hidden="true"><use href="#${s.art}"/></svg></div>`}
+          <div class="sig-body">
+            <span class="tag">${esc(s.tag)}</span>
+            <h3>${esc(s.name)}</h3>
+            <p>${esc(s.desc)}</p>
+            ${priceByName[s.name] ? `<span class="price">${won(priceByName[s.name])}</span>` : ''}
+          </div>
         </article>`).join('');
     }
 

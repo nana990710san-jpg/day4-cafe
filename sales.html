@@ -28,7 +28,6 @@
       --font: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
       --serif: "Gowun Batang", "Noto Serif KR", serif;
       --accent: "Cormorant Garamond", "Gowun Batang", serif;
-      --lace: url("assets/lace-ivory.png") 0 0 / 300px auto;  /* 사용자가 준 레이스 사진에서 실만 따낸 아이보리 무늬 (투명 바탕) */
       --net: radial-gradient(circle, rgba(94, 42, 58, .06) 1px, transparent 1.3px) 0 0 / 7px 7px;
     }
 
@@ -59,7 +58,7 @@
     /* 오늘 합계 */
     .totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
     .total { background: var(--linen); color: var(--fig-deep); border-radius: var(--radius); padding: 16px 20px; }
-    .total.dark { background: var(--lace), var(--fig); color: var(--bg); }
+    .total.dark { background: var(--fig); color: var(--bg); }
     .total .label { font-size: 14px; opacity: .8; }
     .total .value { margin-top: 4px; font-family: var(--serif); font-size: 28px; font-weight: 700; }
 
