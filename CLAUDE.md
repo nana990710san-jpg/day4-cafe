@@ -17,7 +17,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `index.html`은 **틀**이다: 왼쪽 메뉴 + 가운데 `<iframe>`. 메뉴를 누르면 iframe `src`가 다른 페이지 HTML로 바뀐다. 홈 내용(숫자 카드 · 7일 매출 그래프 · AI 오늘 브리핑)도 index가 담당한다.
 - 나머지 4개 페이지는 iframe 안에서 단독으로 동작한다. 각 파일이 스스로 Supabase 클라이언트를 만들고 필요한 테이블을 읽고 쓴다.
-- 판매 저장(`sales`)은 재고 차감(`menus.stock`)과 함께 일어나야 한다. 판매 삭제 시 재고를 되돌린다.
+- 판매 저장 · 취소는 `sales`에 직접 insert/delete 하지 말고 DB 함수 `record_sale(p_menu_id, p_quantity)` / `cancel_sale(p_sale_id)`를 `db.rpc()`로 부른다. 이 함수가 판매 기록과 `menus.stock` 차감·복구를 한 트랜잭션으로 처리하고, 재고보다 많이 팔면 에러를 낸다 (security invoker, anon에 EXECUTE).
+- "오늘"은 브라우저 현지 시각 자정부터(`sold_at >= 오늘 0시`)로 계산한다.
 - 테이블(Supabase에 생성됨): `menus`, `sales`, `reviews`. 컬럼은 PRD.md 8절. `sales`는 `menu_id`와 함께 `menu_name`도 저장해 메뉴가 지워져도 기록이 남는다.
 - 로그인이 없으므로 세 테이블 모두 `anon`에 SELECT/INSERT/UPDATE/DELETE 권한 + RLS 모두 허용 정책이 걸려 있다. 스키마 변경은 Supabase 커넥터의 `apply_migration`으로 한다.
 

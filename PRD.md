@@ -144,7 +144,7 @@ AI는 Supabase Edge Function **`cafe-ai` 하나**로 처리한다. 페이지는 
 
 ✅ = 2026-10-23 생성됨 (migration `create_menus_sales_reviews`).
 
-- 판매 저장과 재고 차감은 함께 처리한다 (DB 함수 또는 트리거 사용 검토).
+- 판매 저장과 재고 차감은 DB 함수 `record_sale`, 판매 취소와 재고 복구는 `cancel_sale`로 함께 처리한다 ✅ (migration `sale_functions`).
 - 7일 매출은 `sales`를 날짜별로 합계해서 구한다.
 - 로그인 없이 쓰므로 `anon`·`authenticated`에 SELECT/INSERT/UPDATE/DELETE를 주고, RLS는 켜되 모두 허용(`using (true)`) 정책을 둔다. 브라우저에는 공개 키(publishable/anon key)만 둔다.
 
