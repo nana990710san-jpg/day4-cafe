@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>메뉴 · 재고</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <style>
+    /* 공통 디자인 값: 5개 페이지 모두 같은 블록을 쓴다 */
+    :root {
+      --bg: #faf6f0;
+      --surface: #ffffff;
+      --brown: #6f4e37;
+      --brown-dark: #4a3324;
+      --brown-soft: #efe4d6;
+      --text: #2b211a;
+      --muted: #8a7a6c;
+      --border: #e6dccf;
+      --danger: #c0392b;
+      --radius: 12px;
+      --font: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: var(--font);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 16px;
+    }
+    h1 { margin: 0 0 4px; font-size: 26px; }
+    .sub { margin: 0 0 24px; color: var(--muted); }
+    h2 { margin: 0 0 12px; font-size: 19px; }
+
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    input, select, button { font: inherit; }
+    input, select {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      min-width: 0;
+    }
+    input:focus, select:focus { outline: 2px solid var(--brown); outline-offset: -1px; }
+
+    .btn {
+      padding: 10px 18px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--brown);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--brown-dark); }
+    .btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
+    .btn-ghost {
+      width: 36px; height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--brown-dark);
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .btn-ghost:hover { background: var(--brown-soft); }
+
+    /* 메뉴 추가 폼 */
+    .add-form {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .add-form label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--muted); min-width: 0; }
+    .add-form input, .add-form select { width: 100%; }
+
+    /* 메뉴 목록 */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-size: 14px; color: var(--muted); font-weight: 600; }
+    td.name { font-weight: 700; font-size: 17px; min-width: 130px; }
+    .badge-cat { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--brown-soft); color: var(--brown-dark); font-size: 13px; }
+    .price-input { width: 110px; text-align: right; }
+    .stock-box { display: flex; align-items: center; gap: 6px; }
+    .stock-input { width: 70px; text-align: center; font-weight: 700; }
+
+    /* 재고 5개 이하 */
+    tr.low td.name { color: var(--danger); }
+    tr.low .stock-input { color: var(--danger); border-color: var(--danger); background: #fdecea; }
+    .badge-low { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--danger); color: #fff; font-size: 12px; vertical-align: middle; }
+
+    .summary { display: flex; gap: 16px; margin-bottom: 12px; color: var(--muted); }
+    .summary b { color: var(--text); }
+    .summary .low b { color: var(--danger); }
+    .empty { padding: 32px; text-align: center; color: var(--muted); }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+      padding: 12px 20px; border-radius: var(--radius);
+      background: var(--brown-dark); color: #fff;
+      opacity: 0; transition: opacity .2s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+    .toast.error { background: var(--danger); }
+
+    @media (max-width: 720px) {
+      body { padding: 16px; }
+      .add-form { grid-template-columns: 1fr 1fr; }
+      .add-form label:first-child { grid-column: 1 / -1; }
+      .add-form .btn { grid-column: 1 / -1; }
+      .col-cat { display: none; }
+      th, td { padding: 10px 6px; }
+      .price-input { width: 90px; }
+      .stock-input { width: 56px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>📋 메뉴 · 재고</h1>
+  <p class="sub">메뉴를 추가하고 가격과 재고를 고쳐요. 재고가 5개 이하면 빨간색으로 보여요.</p>
+
+  <section class="card">
+    <h2>메뉴 추가</h2>
+    <form id="add-form" class="add-form">
+      <label>메뉴 이름<input name="name" required placeholder="예: 바닐라 라떼"></label>
+      <label>분류
+        <select name="category">
+          <option>음료</option>
+          <option>디저트</option>
+          <option>베이커리</option>
+          <option>기타</option>
+        </select>
+      </label>
+      <label>가격(원)<input name="price" type="number" min="0" step="100" required placeholder="4500"></label>
+      <label>재고<input name="stock" type="number" min="0" value="0" required></label>
+      <button class="btn" type="submit">추가</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>메뉴 목록</h2>
+    <div class="summary" id="summary"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>메뉴</th><th class="col-cat">분류</th><th>가격(원)</th><th>재고</th><th></th></tr>
+        </thead>
+        <tbody id="list"><tr><td colspan="5" class="empty">불러오는 중…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://nmjnzcmxckaftvztfjhj.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_6xkxdgP44bIiejCxat0SjA_o8E-R5EO';
+    const LOW_STOCK = 5;
+
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const list = document.getElementById('list');
+    const won = n => n.toLocaleString('ko-KR');
+
+    function toast(msg, isError = false) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast show' + (isError ? ' error' : '');
+      clearTimeout(toast.t);
+      toast.t = setTimeout(() => el.className = 'toast', 2000);
+    }
+
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    async function load() {
+      const { data, error } = await db.from('menus').select('*').order('category').order('name');
+      if (error) {
+        list.innerHTML = '<tr><td colspan="5" class="empty">메뉴를 불러오지 못했어요.</td></tr>';
+        return toast('불러오기 실패: ' + error.message, true);
+      }
+      render(data);
+    }
+
+    function render(menus) {
+      const low = menus.filter(m => m.stock <= LOW_STOCK).length;
+      document.getElementById('summary').innerHTML =
+        `<span>전체 <b>${menus.length}</b>개</span><span class="low">재고 부족 <b>${low}</b>개</span>`;
+
+      if (!menus.length) {
+        list.innerHTML = '<tr><td colspan="5" class="empty">아직 메뉴가 없어요. 위에서 추가해 주세요.</td></tr>';
+        return;
+      }
+      list.innerHTML = menus.map(m => `
+        <tr data-id="${m.id}" class="${m.stock <= LOW_STOCK ? 'low' : ''}">
+          <td class="name">${esc(m.name)}${m.stock <= LOW_STOCK ? '<span class="badge-low">재고 부족</span>' : ''}</td>
+          <td class="col-cat"><span class="badge-cat">${esc(m.category)}</span></td>
+          <td><input class="price-input" type="number" min="0" step="100" value="${m.price}" data-orig="${m.price}"></td>
+          <td>
+            <div class="stock-box">
+              <button class="btn-ghost" data-step="-1" aria-label="재고 1 빼기">−</button>
+              <input class="stock-input" type="number" min="0" value="${m.stock}" data-orig="${m.stock}">
+              <button class="btn-ghost" data-step="1" aria-label="재고 1 더하기">+</button>
+            </div>
+          </td>
+          <td><button class="btn save" disabled>저장</button></td>
+        </tr>`).join('');
+    }
+
+    // 값이 바뀐 줄만 저장 버튼 켜기
+    function markDirty(row) {
+      const price = row.querySelector('.price-input');
+      const stock = row.querySelector('.stock-input');
+      row.querySelector('.save').disabled = price.value === price.dataset.orig && stock.value === stock.dataset.orig;
+    }
+
+    list.addEventListener('input', e => {
+      const row = e.target.closest('tr');
+      if (row) markDirty(row);
+    });
+
+    list.addEventListener('click', async e => {
+      const row = e.target.closest('tr');
+      if (!row) return;
+
+      const step = e.target.dataset.step;
+      if (step) {
+        const input = row.querySelector('.stock-input');
+        input.value = Math.max(0, (parseInt(input.value, 10) || 0) + Number(step));
+        return markDirty(row);
+      }
+
+      if (e.target.classList.contains('save')) {
+        const price = parseInt(row.querySelector('.price-input').value, 10);
+        const stock = parseInt(row.querySelector('.stock-input').value, 10);
+        if (!(price >= 0) || !(stock >= 0)) return toast('가격과 재고는 0 이상 숫자로 넣어 주세요.', true);
+
+        e.target.disabled = true;
+        const { error } = await db.from('menus').update({ price, stock }).eq('id', row.dataset.id);
+        if (error) {
+          e.target.disabled = false;
+          return toast('저장 실패: ' + error.message, true);
+        }
+        toast('저장했어요');
+        load();
+      }
+    });
+
+    // Enter로도 저장
+    list.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+        const save = e.target.closest('tr').querySelector('.save');
+        if (!save.disabled) save.click();
+      }
+    });
+
+    document.getElementById('add-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.target;
+      const f = form.elements; // form.name은 폼 자체의 name 속성이라 elements로 읽는다
+      const menu = {
+        name: f.name.value.trim(),
+        category: f.category.value,
+        price: parseInt(f.price.value, 10),
+        stock: parseInt(f.stock.value, 10),
+      };
+      if (!menu.name) return toast('메뉴 이름을 넣어 주세요.', true);
+
+      const btn = form.querySelector('button');
+      btn.disabled = true;
+      const { error } = await db.from('menus').insert(menu);
+      btn.disabled = false;
+      if (error) return toast('추가 실패: ' + error.message, true);
+
+      toast(`'${menu.name}' 추가했어요`);
+      form.reset();
+      f.name.focus();
+      load();
+    });
+
+    load();
+  </script>
+</body>
+</html>

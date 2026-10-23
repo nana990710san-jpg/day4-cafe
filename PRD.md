@@ -137,14 +137,16 @@ AI는 Supabase Edge Function **`cafe-ai` 하나**로 처리한다. 페이지는 
 
 | 테이블 | 주요 컬럼 | 용도 |
 |---|---|---|
-| `menu_items` | id, name, price, stock, low_stock_threshold, is_active, created_at | 메뉴와 재고 |
-| `sales` | id, menu_item_id, quantity, unit_price, total, sold_at | 판매 기록 |
-| `reviews` | id, author, rating, content, source, reply, replied_at, created_at | 리뷰와 답글 |
-| `promos` | id, menu_item_id, channel, tone, content, created_at | 저장한 홍보 문구 |
+| `menus` ✅ | id, name, category, price, stock, created_at | 메뉴와 재고 |
+| `sales` ✅ | id, menu_id → menus.id, menu_name, quantity, amount, sold_at | 판매 기록 |
+| `reviews` ✅ | id, rating(1~5), content, sentiment(긍정/중립/부정), reply, created_at | 리뷰와 답글 |
+| `promos` (미정) | id, menu_id, channel, tone, content, created_at | 저장한 홍보 문구 |
+
+✅ = 2026-10-23 생성됨 (migration `create_menus_sales_reviews`).
 
 - 판매 저장과 재고 차감은 함께 처리한다 (DB 함수 또는 트리거 사용 검토).
 - 7일 매출은 `sales`를 날짜별로 합계해서 구한다.
-- 보안(RLS) 정책은 구현 단계에서 정한다. 브라우저에는 공개 키(publishable/anon key)만 둔다.
+- 로그인 없이 쓰므로 `anon`·`authenticated`에 SELECT/INSERT/UPDATE/DELETE를 주고, RLS는 켜되 모두 허용(`using (true)`) 정책을 둔다. 브라우저에는 공개 키(publishable/anon key)만 둔다.
 
 ## 9. 만드는 방법 (기술 조건)
 

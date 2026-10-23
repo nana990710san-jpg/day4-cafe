@@ -17,10 +17,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `index.html`은 **틀**이다: 왼쪽 메뉴 + 가운데 `<iframe>`. 메뉴를 누르면 iframe `src`가 다른 페이지 HTML로 바뀐다. 홈 내용(숫자 카드 · 7일 매출 그래프 · AI 오늘 브리핑)도 index가 담당한다.
 - 나머지 4개 페이지는 iframe 안에서 단독으로 동작한다. 각 파일이 스스로 Supabase 클라이언트를 만들고 필요한 테이블을 읽고 쓴다.
-- 판매 저장(`sales`)은 재고 차감(`menu_items.stock`)과 함께 일어나야 한다. 판매 삭제 시 재고를 되돌린다.
-- 테이블: `menu_items`, `sales`, `reviews`, `promos` (컬럼은 PRD.md 8절).
+- 판매 저장(`sales`)은 재고 차감(`menus.stock`)과 함께 일어나야 한다. 판매 삭제 시 재고를 되돌린다.
+- 테이블(Supabase에 생성됨): `menus`, `sales`, `reviews`. 컬럼은 PRD.md 8절. `sales`는 `menu_id`와 함께 `menu_name`도 저장해 메뉴가 지워져도 기록이 남는다.
+- 로그인이 없으므로 세 테이블 모두 `anon`에 SELECT/INSERT/UPDATE/DELETE 권한 + RLS 모두 허용 정책이 걸려 있다. 스키마 변경은 Supabase 커넥터의 `apply_migration`으로 한다.
 
 ## 디자인 규칙
+
+Supabase 주소와 공개 키(`sb_publishable_…`)는 각 페이지 `<script>` 맨 위 `SUPABASE_URL` / `SUPABASE_KEY` 상수로 넣는다 (menu.html 참고). supabase-js는 CDN `@supabase/supabase-js@2.45.4` UMD로 불러온다.
 
 모든 페이지가 같은 색과 글꼴을 쓴다. 각 HTML 파일 맨 위에 **동일한 CSS 변수 블록**을 두므로, 색 · 글꼴을 바꿀 때는 5개 파일을 모두 똑같이 고친다.
 
