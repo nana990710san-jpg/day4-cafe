@@ -9,6 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 기술 조건 (PRD에서 정한 제약)
 
 - **페이지 = HTML 파일 하나.** `index.html`, `sales.html`, `menu.html`, `reviews.html`, `promo.html`, `rivals.html`(주변 카페, 사용자 요청으로 추가) 6개. 사용자가 요청하지 않으면 페이지를 더 만들지 않는다.
+- **손님용 홈페이지 `homepage.html`은 대시보드와 별개다** ([PRD-homepage.md](PRD-homepage.md)). 아래 "공통 블록" 규칙을 따르지 않고 자기만의 무화과 · 레몬 · 레이스 색과 글꼴(Gowun Batang, Cormorant Garamond)을 쓴다. DB는 `menus` · `reviews`를 **select만** 하고 쓰기 코드를 넣지 않으며, 대시보드로 가는 링크를 두지 않는다. 가게 정보(이름 · 주소 · 시간 · 시그니처)는 파일 맨 위 `CAFE` 객체에서만 고친다. 무드 사진 `무화과 레이스 (1~7).jpg`는 참고용이라 페이지에 넣지 않는다(출처 불명, 한 장은 Pinterest 표시).
 - `rivals.html`은 API 키 없이 구글 지도 임베드(`maps.google.com/maps?q=…&output=embed`)와 카카오맵 검색 링크만 쓴다. Supabase를 쓰지 않는다.
 - **npm · 빌드 도구 · 프레임워크 없음.** 라이브러리(Supabase JS, 그래프 라이브러리)는 CDN `<script>`로만 불러온다. `package.json`을 만들지 않는다.
 - **DB:** 사용자의 Supabase 프로젝트 `day4-cafe`. 브라우저에는 공개 키(publishable/anon)만 둔다.
@@ -35,7 +36,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Supabase 주소와 공개 키(`sb_publishable_…`)는 각 페이지 `<script>` 맨 위 `SUPABASE_URL` / `SUPABASE_KEY` 상수로 넣는다 (menu.html 참고). supabase-js는 CDN `@supabase/supabase-js@2.45.4` UMD로 불러온다.
 
-모든 페이지가 글자 하나까지 같은 블록을 쓴다. 바꿀 때는 6개 파일을 모두 똑같이 고친다:
+대시보드 6개 페이지(homepage.html 제외)가 글자 하나까지 같은 블록을 쓴다. 바꿀 때는 6개 파일을 모두 똑같이 고친다:
 - CSS `:root` 변수 블록 (색 · 글꼴)
 - CSS "공통 모양" 블록 (body 여백 24px/좁은 화면 16px, `.card`, 입력칸, `.btn` · `.btn-line` 높이 44px, `.btn-ghost` 44×44, `.toast`)
 - JS "공통 도우미" 블록 (`$`, `esc`, `won`, `toast`, `friendly`) — rivals.html은 쓰지 않아 없음

@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>골목카페 · 무화과와 레몬, 레이스 한 자락</title>
+  <meta name="description" content="무화과와 레몬, 바질로 계절을 담는 동네 골목 카페">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Gowun+Batang:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <script>document.documentElement.classList.add('js');</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <style>
+    /* 손님용 홈페이지 전용 색 · 글꼴 (운영 대시보드 공통 블록과 다르다. PRD-homepage.md 4절) */
+    :root {
+      --ivory: #fbf6ec;
+      --linen: #f2e9d8;
+      --fig: #5e2a3a;
+      --fig-deep: #45202c;
+      --fig-flesh: #c76a72;
+      --lemon: #f2dc86;
+      --basil: #6f7f4f;
+      --gold: #b08a3c;
+      --ink: #2e2427;
+      --muted: #7d6c66;
+      --line: #e4d6bd;
+      --serif: "Gowun Batang", "Noto Serif KR", serif;
+      --accent: "Cormorant Garamond", "Gowun Batang", serif;
+      --sans: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+      --wrap: 1080px;
+      /* 레이스 무늬 (금빛 선으로 그린 꽃 모양 반복) */
+      --lace: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23b08a3c' stroke-opacity='.35' stroke-width='.9'%3E%3Ccircle cx='36' cy='36' r='12'/%3E%3Ccircle cx='36' cy='36' r='5'/%3E%3Cpath d='M36 24c3-6 3-11 0-16M36 48c3 6 3 11 0 16M24 36c-6-3-11-3-16 0M48 36c6-3 11-3 16 0'/%3E%3Ccircle cx='0' cy='0' r='9'/%3E%3Ccircle cx='72' cy='0' r='9'/%3E%3Ccircle cx='0' cy='72' r='9'/%3E%3Ccircle cx='72' cy='72' r='9'/%3E%3C/g%3E%3Cg fill='%23b08a3c' fill-opacity='.22'%3E%3Cellipse cx='36' cy='22' rx='3' ry='5'/%3E%3Cellipse cx='36' cy='50' rx='3' ry='5'/%3E%3Cellipse cx='22' cy='36' rx='5' ry='3'/%3E%3Cellipse cx='50' cy='36' rx='5' ry='3'/%3E%3Ccircle cx='36' cy='36' r='2'/%3E%3C/g%3E%3C/svg%3E");
+      /* 레이스 그물 (아주 작은 점) */
+      --net: radial-gradient(circle, rgba(176, 138, 60, .18) 1px, transparent 1.3px) 0 0 / 7px 7px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+    body { margin: 0; background: var(--ivory); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.75; overflow-x: hidden; word-break: keep-all; overflow-wrap: anywhere; }
+    img, svg { display: block; max-width: 100%; }
+    a { color: inherit; }
+    h1, h2, h3 { font-family: var(--serif); font-weight: 700; line-height: 1.35; margin: 0; letter-spacing: -.01em; }
+    .wrap { width: min(var(--wrap), 100% - 40px); margin: 0 auto; }
+    .eyebrow { display: block; margin-bottom: 8px; font-family: var(--accent); font-style: italic; font-size: 20px; color: var(--gold); letter-spacing: .02em; }
+    .section { position: relative; padding: 96px 0; }
+    .section-head { max-width: 44em; margin-bottom: 48px; }
+    .section-head h2 { font-size: clamp(28px, 4vw, 38px); color: var(--fig); }
+    .section-head p { margin: 12px 0 0; color: var(--muted); }
+
+    /* 레이스 밑단처럼 물결진 테두리: 바로 위 구역 색으로 반원이 아래로 늘어진다 */
+    .scallop { position: relative; }
+    .scallop::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: -14px; height: 14px; z-index: 2; pointer-events: none;
+      background:
+        radial-gradient(circle at 14px 0, var(--edge, var(--linen)) 13px, transparent 13.5px) repeat-x 0 0 / 28px 14px;
+    }
+    .scallop::before {
+      content: ""; position: absolute; left: 0; right: 0; bottom: -7px; height: 4px; z-index: 3; pointer-events: none;
+      background: radial-gradient(circle, rgba(176, 138, 60, .45) 1.4px, transparent 1.8px) repeat-x 7px 0 / 28px 4px;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 48px; padding: 12px 26px; border-radius: 999px;
+      font: 600 16px/1 var(--sans); text-decoration: none; cursor: pointer; transition: background .2s, color .2s, transform .2s;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-fig { border: 1px solid var(--fig); background: var(--fig); color: var(--ivory); }
+    .btn-fig:hover { background: var(--fig-deep); }
+    .btn-ghost { border: 1px solid var(--fig); background: transparent; color: var(--fig); }
+    .btn-ghost:hover { background: rgba(94, 42, 58, .06); }
+
+    /* ---------- 상단바 ---------- */
+    .top { position: fixed; inset: 0 0 auto; z-index: 20; transition: background .3s, box-shadow .3s; }
+    .top.solid { background: rgba(251, 246, 236, .92); backdrop-filter: blur(8px); box-shadow: 0 1px 0 var(--line); }
+    .top .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .logo { display: flex; align-items: baseline; gap: 8px; text-decoration: none; color: var(--fig); }
+    .logo b { font-family: var(--serif); font-size: 22px; }
+    .logo i { font-family: var(--accent); font-size: 17px; color: var(--gold); }
+    .nav { display: flex; gap: 28px; }
+    .nav a { text-decoration: none; color: var(--ink); font-size: 15px; padding: 6px 0; border-bottom: 1px solid transparent; }
+    .nav a:hover { color: var(--fig); border-bottom-color: var(--gold); }
+    .menu-toggle { display: none; width: 44px; height: 44px; border: 0; background: transparent; color: var(--fig); font-size: 24px; cursor: pointer; }
+
+    /* ---------- ① 첫 화면 ---------- */
+    .hero { --edge: var(--ivory); position: relative; padding: 140px 0 110px; background: var(--ivory); }
+    .hero .lace-bg { position: absolute; inset: 0; background: var(--lace); opacity: .55; mask-image: linear-gradient(115deg, transparent 35%, #000 75%); -webkit-mask-image: linear-gradient(115deg, transparent 35%, #000 75%); }
+    .hero .wrap { position: relative; display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; }
+    .hero h1 { font-size: clamp(36px, 6vw, 62px); color: var(--fig); }
+    .hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, var(--lemon) 62%, var(--lemon) 92%, transparent 92%); }
+    .hero .lead { max-width: 26em; margin: 22px 0 32px; font-size: 18px; color: var(--muted); }
+    .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .open-badge { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255, 255, 255, .6); font-size: 14px; color: var(--muted); }
+    .open-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .open-badge.open::before { background: var(--basil); box-shadow: 0 0 0 4px rgba(111, 127, 79, .18); }
+
+    /* 레이스 접시 위의 무화과 · 레몬 */
+    .plate { position: relative; aspect-ratio: 1; width: min(460px, 100%); margin-left: auto; }
+    .plate .doily {
+      position: absolute; inset: 0; border-radius: 50%;
+      background: var(--lace), var(--net), #fffdf8;
+      box-shadow: 0 0 0 10px #fffdf8, 0 0 0 11px var(--line), 0 30px 60px -30px rgba(94, 42, 58, .45);
+    }
+    .plate .doily::after { content: ""; position: absolute; inset: 18px; border-radius: 50%; border: 1px dashed rgba(176, 138, 60, .55); }
+    .plate .art { position: absolute; filter: drop-shadow(0 10px 12px rgba(69, 32, 44, .25)); }
+    .plate .fig-a { width: 38%; left: 18%; top: 22%; transform: rotate(-14deg); }
+    .plate .fig-b { width: 30%; left: 50%; top: 36%; transform: rotate(18deg); }
+    .plate .lemon-a { width: 34%; left: 30%; top: 62%; transform: rotate(-8deg); }
+    .plate .leaf-a { width: 16%; left: 66%; top: 18%; transform: rotate(30deg); }
+
+    /* ---------- ② 이야기 ---------- */
+    .story { --edge: var(--linen); background: var(--linen); }
+    .story .wrap { display: grid; grid-template-columns: .9fr 1.1fr; gap: 56px; align-items: center; }
+    .story-text p { margin: 0 0 16px; max-width: 34em; }
+    .story-text p:first-of-type::first-letter { float: left; margin: 6px 10px 0 0; font-family: var(--serif); font-size: 56px; line-height: .9; color: var(--fig); }
+    .story-card { position: relative; padding: 40px 32px; border: 1px solid var(--line); background: var(--lace), var(--ivory); text-align: center; }
+    .story-card::before { content: ""; position: absolute; inset: 10px; border: 1px solid rgba(176, 138, 60, .4); pointer-events: none; }
+    .story-card blockquote { margin: 0; font-family: var(--serif); font-size: 22px; line-height: 1.7; color: var(--fig); }
+    .story-card cite { display: block; margin-top: 14px; font-family: var(--accent); font-size: 18px; color: var(--gold); }
+
+    /* ---------- ③ 시그니처 ---------- */
+    .signatures { --edge: var(--ivory); background: var(--ivory); }
+    .sig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .sig { position: relative; padding: 28px 24px 30px; border: 1px solid var(--line); border-radius: 200px 200px 16px 16px; background: #fffdf8; text-align: center; overflow: hidden; }
+    .sig .halo { width: 150px; height: 150px; margin: 6px auto 18px; border-radius: 50%; display: grid; place-items: center; background: var(--lace), var(--net), var(--tint, var(--linen)); }
+    .sig .halo svg { width: 92px; }
+    .sig .tag { font-family: var(--accent); font-style: italic; font-size: 18px; color: var(--gold); }
+    .sig h3 { margin: 2px 0 10px; font-size: 21px; color: var(--fig); }
+    .sig p { margin: 0 0 14px; color: var(--muted); font-size: 15px; }
+    .sig .price { font-family: var(--serif); font-size: 18px; color: var(--fig-flesh); }
+
+    /* ---------- ④ 메뉴판 ---------- */
+    .menu { --edge: var(--linen); background: var(--linen); }
+    .menu-board { position: relative; padding: 48px clamp(20px, 5vw, 64px); background: var(--net), #fffdf8; border: 1px solid var(--line); box-shadow: 0 20px 40px -32px rgba(69, 32, 44, .4); }
+    .menu-board::before { content: ""; position: absolute; inset: 12px; border: 1px solid rgba(176, 138, 60, .35); pointer-events: none; }
+    .menu-cols { columns: 2 320px; column-gap: 56px; }
+    .menu-cat { break-inside: avoid; margin-bottom: 36px; }
+    .menu-cat h3 { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 20px; color: var(--fig); }
+    .menu-cat h3 i { font-family: var(--accent); font-weight: 400; font-size: 18px; color: var(--gold); }
+    .menu-row { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; }
+    .menu-row .name { font-size: 16px; }
+    .menu-row .dots { flex: 1; min-width: 20px; border-bottom: 1px dotted rgba(125, 108, 102, .5); transform: translateY(-4px); }
+    .menu-row .price { font-family: var(--serif); color: var(--fig); white-space: nowrap; }
+    .menu-row.soldout .name, .menu-row.soldout .price { color: #b3a49e; text-decoration: line-through; }
+    .soldout-tag { margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--lemon); color: var(--fig-deep); font-size: 12px; text-decoration: none; white-space: nowrap; }
+    .menu-note { margin: 8px 0 0; text-align: center; color: var(--muted); font-size: 14px; }
+    .menu-empty { padding: 32px 0; text-align: center; color: var(--muted); }
+
+    /* ---------- ⑤ 후기 ---------- */
+    .reviews { --edge: var(--ivory); background: var(--ivory); }
+    .review-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .review { position: relative; margin: 0; padding: 32px 28px 26px; background: #fffdf8; border: 1px solid var(--line); }
+    .review::before { content: "“"; position: absolute; top: -6px; left: 18px; font-family: var(--accent); font-size: 72px; line-height: 1; color: var(--fig-flesh); }
+    .review .stars { color: var(--gold); letter-spacing: 2px; font-size: 14px; }
+    .review p { margin: 10px 0 0; font-family: var(--serif); font-size: 17px; line-height: 1.8; }
+    .review time { display: block; margin-top: 14px; font-size: 13px; color: var(--muted); }
+
+    /* ---------- ⑥ 공간 ---------- */
+    .space { --edge: var(--fig); background: var(--fig); color: var(--ivory); }
+    .space .section-head h2 { color: var(--ivory); }
+    .space .section-head p { color: rgba(251, 246, 236, .75); }
+    .space .eyebrow { color: var(--lemon); }
+    .gallery { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 210px; gap: 14px; }
+    .tile { position: relative; overflow: hidden; display: flex; align-items: flex-end; padding: 18px; background: var(--lace), var(--net), var(--bg); color: var(--fig-deep); }
+    .tile.tall { grid-row: span 2; }
+    .tile::after { content: ""; position: absolute; inset: 8px; border: 1px solid rgba(255, 255, 255, .55); pointer-events: none; }
+    .tile figcaption { position: relative; z-index: 1; font-family: var(--accent); font-style: italic; font-size: 20px; line-height: 1.3; }
+    .tile figcaption small { display: block; font-family: var(--sans); font-style: normal; font-size: 13px; opacity: .8; }
+    .tile svg { position: absolute; right: 12%; top: 16%; width: 38%; opacity: .9; }
+
+    /* ---------- ⑦ 오시는 길 ---------- */
+    .visit { background: var(--ivory); }
+    .visit .wrap { display: grid; grid-template-columns: .9fr 1.1fr; gap: 48px; align-items: start; }
+    .info { margin: 0; }
+    .info div { display: grid; grid-template-columns: 88px 1fr; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .info dt { font-family: var(--serif); color: var(--fig); }
+    .info dd { margin: 0; }
+    .info dd a { color: var(--fig); }
+    .map-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .map { width: 100%; aspect-ratio: 4 / 3; border: 1px solid var(--line); background: var(--lace), var(--net), var(--linen); display: grid; place-items: center; color: var(--muted); text-align: center; padding: 24px; }
+    .map iframe { width: 100%; height: 100%; border: 0; }
+    .map.has-map { padding: 0; }
+
+    footer { padding: 40px 0 48px; background: var(--fig-deep); color: rgba(251, 246, 236, .75); font-size: 14px; }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+    footer a { color: var(--lemon); }
+
+    /* 화면에 들어올 때 살짝 떠오르기 (JS가 돌 때만 숨긴다: <html class="js">) */
+    .js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .8s ease, transform .8s ease; }
+    .js .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .js .reveal { opacity: 1; transform: none; transition: none; }
+      .btn:hover { transform: none; }
+    }
+
+    @media (max-width: 860px) {
+      .section { padding: 64px 0; }
+      .section-head { margin-bottom: 32px; }
+      .menu-toggle { display: block; }
+      .nav { display: none; position: absolute; top: 68px; left: 0; right: 0; flex-direction: column; gap: 0; padding: 8px 20px 16px; background: rgba(251, 246, 236, .97); box-shadow: 0 8px 16px -12px rgba(69, 32, 44, .4); }
+      .nav.open { display: flex; }
+      .nav a { padding: 12px 0; border-bottom: 1px solid var(--line); }
+      .hero { padding: 108px 0 72px; }
+      .hero .wrap, .story .wrap, .visit .wrap { grid-template-columns: 1fr; gap: 36px; }
+      .plate { width: min(340px, 86%); margin: 0 auto; }
+      .sig-grid, .review-grid { grid-template-columns: 1fr; }
+      .sig { max-width: 420px; margin: 0 auto; width: 100%; }
+      .gallery { grid-template-columns: 1fr 1fr; grid-auto-rows: 160px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 손그림 무화과 · 레몬 · 바질 (여러 곳에서 <use>로 다시 쓴다) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <radialGradient id="g-flesh" cx="50%" cy="58%" r="55%">
+        <stop offset="0" stop-color="#8f2f45"/><stop offset=".55" stop-color="#c76a72"/><stop offset="1" stop-color="#e7a9a2"/>
+      </radialGradient>
+      <linearGradient id="g-skin" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#7a3a4c"/><stop offset="1" stop-color="#3f1d29"/>
+      </linearGradient>
+      <radialGradient id="g-lemon" cx="38%" cy="35%" r="70%">
+        <stop offset="0" stop-color="#fbeaa0"/><stop offset=".6" stop-color="#f0cf4f"/><stop offset="1" stop-color="#d9a92c"/>
+      </radialGradient>
+      <symbol id="fig-half" viewBox="0 0 120 140">
+        <path d="M60 8c6 0 8 10 10 18 28 12 42 40 38 68-4 28-24 42-48 42S16 122 12 94C8 66 22 38 50 26c2-8 4-18 10-18z" fill="url(#g-skin)"/>
+        <path d="M60 30c20 10 38 34 36 62-2 24-18 34-36 34s-34-10-36-34c-2-28 16-52 36-62z" fill="#efe2c4"/>
+        <path d="M60 42c16 10 28 28 26 50-2 18-14 26-26 26s-24-8-26-26c-2-22 10-40 26-50z" fill="url(#g-flesh)"/>
+        <g fill="#f6dcb2" opacity=".85">
+          <ellipse cx="52" cy="70" rx="1.8" ry="3" transform="rotate(-20 52 70)"/><ellipse cx="66" cy="66" rx="1.8" ry="3" transform="rotate(25 66 66)"/>
+          <ellipse cx="58" cy="84" rx="1.8" ry="3"/><ellipse cx="46" cy="92" rx="1.8" ry="3" transform="rotate(-35 46 92)"/>
+          <ellipse cx="72" cy="90" rx="1.8" ry="3" transform="rotate(35 72 90)"/><ellipse cx="60" cy="102" rx="1.8" ry="3"/>
+          <ellipse cx="50" cy="106" rx="1.6" ry="2.6" transform="rotate(-30 50 106)"/><ellipse cx="70" cy="106" rx="1.6" ry="2.6" transform="rotate(30 70 106)"/>
+          <ellipse cx="62" cy="56" rx="1.6" ry="2.6"/>
+        </g>
+        <path d="M57 4h6v8h-6z" fill="#6f7f4f"/>
+      </symbol>
+      <symbol id="fig-whole" viewBox="0 0 120 140">
+        <path d="M60 8c6 0 8 10 10 18 28 12 42 40 38 68-4 28-24 42-48 42S16 122 12 94C8 66 22 38 50 26c2-8 4-18 10-18z" fill="url(#g-skin)"/>
+        <path d="M40 50c-8 14-10 34-4 52" stroke="#a85a6c" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/>
+        <path d="M57 4h6v8h-6z" fill="#6f7f4f"/>
+      </symbol>
+      <symbol id="lemon" viewBox="0 0 120 90">
+        <path d="M14 45C14 22 38 10 60 10s46 12 46 35-24 35-46 35-46-12-46-35z" fill="url(#g-lemon)"/>
+        <ellipse cx="9" cy="45" rx="7" ry="5" fill="#e3b938"/><ellipse cx="111" cy="45" rx="7" ry="5" fill="#e3b938"/>
+        <ellipse cx="44" cy="30" rx="12" ry="5" fill="#fff6c8" opacity=".6" transform="rotate(-15 44 30)"/>
+      </symbol>
+      <symbol id="leaf" viewBox="0 0 60 120">
+        <path d="M30 4C52 30 56 74 30 116 4 74 8 30 30 4z" fill="#6f7f4f"/>
+        <path d="M30 14v96M30 40l12-10M30 60l14-12M30 80l12-10M30 40 18 30M30 60 16 48M30 80 18 70" stroke="#4f5c37" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="tart" viewBox="0 0 140 100">
+        <path d="M10 46h120l-10 40c-2 6-6 8-12 8H32c-6 0-10-2-12-8z" fill="#d9a86a"/>
+        <path d="M10 46h120" stroke="#b0803f" stroke-width="6" stroke-linecap="round"/>
+        <path d="M20 46c10-16 90-16 100 0" fill="#f6efe0"/>
+        <use href="#fig-half" x="38" y="6" width="34" height="40"/>
+        <use href="#fig-half" x="68" y="8" width="32" height="38" transform="rotate(14 84 27)"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <header class="top" id="top">
+    <div class="wrap">
+      <a class="logo" href="#home"><b id="cafe-name">골목카페</b><i>fig &amp; lace</i></a>
+      <button class="menu-toggle" id="menu-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="nav" id="nav">
+        <a href="#story">소개</a>
+        <a href="#signature">시그니처</a>
+        <a href="#menu">메뉴</a>
+        <a href="#reviews">후기</a>
+        <a href="#visit">오시는 길</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ① 첫 화면 -->
+    <section class="hero scallop" id="home">
+      <div class="lace-bg" aria-hidden="true"></div>
+      <div class="wrap">
+        <div>
+          <span class="open-badge" id="open-badge">영업시간 확인 중</span>
+          <span class="eyebrow">Figs, lemons &amp; a little lace</span>
+          <h1>골목 끝,<br><em>무화과가 익는</em><br>작은 카페</h1>
+          <p class="lead" id="tagline">잘 익은 무화과와 햇살 같은 레몬, 바질 한 잎. 계절이 가장 맛있을 때를 컵에 담아요.</p>
+          <div class="actions">
+            <a class="btn btn-fig" href="#menu">메뉴 보기</a>
+            <a class="btn btn-ghost" href="#visit">오시는 길</a>
+          </div>
+        </div>
+        <div class="plate" aria-hidden="true">
+          <div class="doily"></div>
+          <svg class="art fig-a" viewBox="0 0 120 140"><use href="#fig-half"/></svg>
+          <svg class="art fig-b" viewBox="0 0 120 140"><use href="#fig-whole"/></svg>
+          <svg class="art lemon-a" viewBox="0 0 120 90"><use href="#lemon"/></svg>
+          <svg class="art leaf-a" viewBox="0 0 60 120"><use href="#leaf"/></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ② 이야기 -->
+    <section class="section story scallop" id="story">
+      <div class="wrap">
+        <div class="story-card reveal">
+          <blockquote>"반으로 가른 무화과처럼,<br>속이 꽉 찬 하루를 건네고 싶어요."</blockquote>
+          <cite>— 골목카페 사장님</cite>
+        </div>
+        <div class="story-text reveal" id="story-text"></div>
+      </div>
+    </section>
+
+    <!-- ③ 시그니처 -->
+    <section class="section signatures scallop" id="signature">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="eyebrow">Signature</span>
+          <h2>이 골목에서만 마실 수 있는 세&nbsp;가지</h2>
+          <p>처음 오셨다면 이 중 하나부터 시작해 보세요.</p>
+        </div>
+        <div class="sig-grid" id="sig-grid"></div>
+      </div>
+    </section>
+
+    <!-- ④ 메뉴판 -->
+    <section class="section menu scallop" id="menu">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="eyebrow">Menu</span>
+          <h2>오늘의 메뉴판</h2>
+          <p>매장 재고에 맞춰 바로바로 바뀌어요. 품절된 메뉴는 내일 다시 만나요.</p>
+        </div>
+        <div class="menu-board reveal">
+          <div class="menu-cols" id="menu-cols"><p class="menu-empty">메뉴판을 펼치는 중이에요…</p></div>
+          <p class="menu-note">가격은 원 단위예요 · 디저트는 하루 정해진 만큼만 구워요</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ⑤ 후기 -->
+    <section class="section reviews scallop" id="reviews">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="eyebrow">Kind words</span>
+          <h2>다녀가신 분들의 이야기</h2>
+        </div>
+        <div class="review-grid" id="review-grid"></div>
+      </div>
+    </section>
+
+    <!-- ⑥ 공간 (실제 사진이 준비되면 각 타일 배경을 사진으로 바꾼다. PRD-homepage.md W-8) -->
+    <section class="section space scallop" id="space">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="eyebrow">The space</span>
+          <h2>레이스 커튼 사이로 들어오는 오후</h2>
+          <p>창가 자리, 바질 화분, 오래된 나무 의자. 천천히 머물다 가세요.</p>
+        </div>
+        <div class="gallery reveal">
+          <figure class="tile tall" style="--bg:#f6ecd6"><svg viewBox="0 0 120 140"><use href="#fig-half"/></svg><figcaption>무화과가 익는 계절<small>8월 – 11월</small></figcaption></figure>
+          <figure class="tile" style="--bg:#f2dc86"><svg viewBox="0 0 120 90"><use href="#lemon"/></svg><figcaption>레몬 한 바구니<small>매일 아침 직접 짜요</small></figcaption></figure>
+          <figure class="tile" style="--bg:#e8c9c4"><figcaption>분홍빛 단면<small>무화과 크림치즈 타르트</small></figcaption></figure>
+          <figure class="tile" style="--bg:#dfe3cf"><svg viewBox="0 0 60 120" style="width:18%"><use href="#leaf"/></svg><figcaption>창가의 바질<small>음료에 바로 따서 넣어요</small></figcaption></figure>
+          <figure class="tile" style="--bg:#efe6d6"><figcaption>나무 의자 네 개<small>작아서 더 아늑한 자리</small></figcaption></figure>
+          <figure class="tile" style="--bg:#f3e3b8"><figcaption>금빛 오후 세 시<small>햇살이 제일 예쁜 시간</small></figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ⑦ 오시는 길 -->
+    <section class="section visit" id="visit">
+      <div class="wrap">
+        <div class="reveal">
+          <div class="section-head" style="margin-bottom:24px">
+            <span class="eyebrow">Visit us</span>
+            <h2>오시는 길</h2>
+          </div>
+          <dl class="info" id="info"></dl>
+          <div class="map-links" id="map-links"></div>
+        </div>
+        <div class="map reveal" id="map"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© <span id="year"></span> <span id="footer-name">골목카페</span> · fig &amp; lace</span>
+      <span id="footer-insta"></span>
+    </div>
+  </footer>
+
+  <script>
+    // ================= 가게 정보: 사장님은 여기만 고치면 돼요 =================
+    // 비어 있는 칸('')은 홈페이지에서 자동으로 숨겨지거나 "준비 중"으로 보여요.
+    const CAFE = {
+      name: '골목카페',
+      tagline: '잘 익은 무화과와 햇살 같은 레몬, 바질 한 잎. 계절이 가장 맛있을 때를 컵에 담아요.',
+      story: [
+        '골목 끝 작은 문을 열면, 레이스 커튼 너머로 오후 햇살이 비스듬히 들어와요. 우리는 이 작은 공간에서 계절이 가장 맛있는 순간을 붙잡아 컵과 접시에 담아요.',
+        '여름 끝부터 가을까지는 잘 익은 무화과를, 일 년 내내는 매일 아침 직접 짠 레몬과 창가에서 키운 바질을 써요. 많이 만들기보다 정성껏 만들고, 다 팔리면 내일 다시 구워요.',
+        '혼자 책을 읽으러 와도, 친구와 수다를 떨러 와도 좋아요. 천천히 머물다 가세요.',
+      ],
+      address: '',            // 예: '서울 마포구 ○○로 12길 3, 1층'
+      hours: { open: '10:00', close: '21:00', closedDays: [1] }, // closedDays: 0=일 1=월 … 6=토 (예시 값이에요)
+      phone: '',              // 예: '02-123-4567'
+      instagram: '',          // 예: 'golmok_cafe' (@ 없이)
+      // 시그니처: name이 메뉴판(DB)의 메뉴 이름과 같으면 가격을 DB에서 가져와요
+      signatures: [
+        { name: '무화과 크림 라떼', tag: 'Fig latte', art: 'fig-half', tint: '#f3dcd6', desc: '잘 익은 무화과를 갈아 넣은 우유 위에 부드러운 크림을 올렸어요' },
+        { name: '레몬 바질 에이드', tag: 'Lemon & basil', art: 'lemon', tint: '#f6e7a8', desc: '매일 아침 짠 레몬에 창가의 바질 향을 살짝 더했어요' },
+        { name: '무화과 크림치즈 타르트', tag: 'Fig tart', art: 'tart', tint: '#efe2c4', desc: '바삭한 타르트에 크림치즈와 반으로 가른 무화과를 듬뿍' },
+      ],
+    };
+    // ==========================================================================
+
+    // 메뉴판 · 후기는 운영 DB에서 "읽기만" 한다 (쓰기 코드 없음)
+    const SUPABASE_URL = 'https://nmjnzcmxckaftvztfjhj.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_6xkxdgP44bIiejCxat0SjA_o8E-R5EO';
+
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const won = n => (Number(n) || 0).toLocaleString('ko-KR') + '원';
+    const DAYS = '일월화수목금토';
+    const CATEGORY_ORDER = ['커피', '음료', '디저트', '아이스크림', '베이커리', '기타'];
+    const CATEGORY_EN = { 커피: 'Coffee', 음료: 'Drinks', 디저트: 'Dessert', 아이스크림: 'Gelato', 베이커리: 'Bakery', 기타: 'Etc.' };
+    const ART_BOX = { 'fig-half': '0 0 120 140', 'fig-whole': '0 0 120 140', lemon: '0 0 120 90', leaf: '0 0 60 120', tart: '0 0 140 100' };
+
+    // ---------- 가게 정보 채우기 ----------
+    function fillCafe() {
+      document.title = `${CAFE.name} · 무화과와 레몬, 레이스 한 자락`;
+      $('cafe-name').textContent = CAFE.name;
+      $('footer-name').textContent = CAFE.name;
+      $('year').textContent = new Date().getFullYear();
+      $('tagline').textContent = CAFE.tagline;
+      $('story-text').innerHTML = CAFE.story.map(p => `<p>${esc(p)}</p>`).join('');
+
+      const h = CAFE.hours;
+      const closed = h.closedDays.map(d => DAYS[d] + '요일').join(', ');
+      const rows = [
+        ['주소', CAFE.address ? esc(CAFE.address) : '곧 알려 드릴게요'],
+        ['영업시간', `${h.open} – ${h.close}`],
+        ['쉬는 날', closed || '연중무휴'],
+      ];
+      if (CAFE.phone) rows.push(['전화', `<a href="tel:${esc(CAFE.phone.replace(/[^0-9+]/g, ''))}">${esc(CAFE.phone)}</a>`]);
+      if (CAFE.instagram) rows.push(['인스타그램', `<a href="https://instagram.com/${encodeURIComponent(CAFE.instagram)}" target="_blank" rel="noopener">@${esc(CAFE.instagram)}</a>`]);
+      $('info').innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+
+      if (CAFE.address) {
+        const q = encodeURIComponent(`${CAFE.address} ${CAFE.name}`);
+        $('map').classList.add('has-map');
+        $('map').innerHTML = `<iframe title="${esc(CAFE.name)} 지도" src="https://maps.google.com/maps?q=${q}&z=16&hl=ko&output=embed" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+        $('map-links').innerHTML = `
+          <a class="btn btn-fig" href="https://map.kakao.com/?q=${q}" target="_blank" rel="noopener">카카오맵으로 보기</a>
+          <a class="btn btn-ghost" href="https://map.naver.com/p/search/${q}" target="_blank" rel="noopener">네이버 지도로 보기</a>`;
+      } else {
+        $('map').innerHTML = '<p>주소가 정해지면<br>이 자리에 지도가 보여요</p>';
+      }
+      if (CAFE.instagram) $('footer-insta').innerHTML = `<a href="https://instagram.com/${encodeURIComponent(CAFE.instagram)}" target="_blank" rel="noopener">@${esc(CAFE.instagram)}</a>`;
+    }
+
+    // 지금 영업 중인지 (브라우저 시각 기준)
+    function openStatus() {
+      const now = new Date();
+      const [oh, om] = CAFE.hours.open.split(':').map(Number);
+      const [ch, cm] = CAFE.hours.close.split(':').map(Number);
+      const mins = now.getHours() * 60 + now.getMinutes();
+      const badge = $('open-badge');
+      const closedToday = CAFE.hours.closedDays.includes(now.getDay());
+      const isOpen = !closedToday && mins >= oh * 60 + om && mins < ch * 60 + cm;
+      badge.classList.toggle('open', isOpen);
+      badge.textContent = closedToday ? '오늘은 쉬어요'
+        : isOpen ? `지금 영업 중 · ${CAFE.hours.close}까지`
+        : mins < oh * 60 + om ? `오늘 ${CAFE.hours.open}에 문을 열어요` : '오늘 영업을 마쳤어요';
+    }
+
+    // ---------- 시그니처 ----------
+    function renderSignatures(priceByName = {}) {
+      $('sig-grid').innerHTML = CAFE.signatures.map(s => `
+        <article class="sig reveal in" style="--tint:${esc(s.tint)}">
+          <div class="halo"><svg viewBox="${ART_BOX[s.art]}" aria-hidden="true"><use href="#${s.art}"/></svg></div>
+          <span class="tag">${esc(s.tag)}</span>
+          <h3>${esc(s.name)}</h3>
+          <p>${esc(s.desc)}</p>
+          ${priceByName[s.name] ? `<span class="price">${won(priceByName[s.name])}</span>` : ''}
+        </article>`).join('');
+    }
+
+    // ---------- 메뉴판 · 후기 (DB 읽기) ----------
+    async function loadFromDb() {
+      let db;
+      try {
+        db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      } catch (err) {
+        console.error(err);
+        return menuFailed();
+      }
+
+      const [menus, reviews] = await Promise.all([
+        db.from('menus').select('name, category, price, stock').order('name'),
+        db.from('reviews').select('rating, content, created_at').gte('rating', 4).order('created_at', { ascending: false }).limit(3),
+      ]).catch(err => [{ error: err }, { error: err }]);
+
+      if (menus.error) {
+        console.error(menus.error);
+        menuFailed();
+      } else {
+        renderMenu(menus.data);
+        renderSignatures(Object.fromEntries(menus.data.map(m => [m.name, m.price])));
+      }
+
+      if (reviews.error || !reviews.data.length) {
+        if (reviews.error) console.error(reviews.error);
+        $('reviews').hidden = true;
+        document.querySelector('.nav a[href="#reviews"]').hidden = true;
+      } else {
+        renderReviews(reviews.data);
+      }
+    }
+
+    function menuFailed() {
+      $('menu-cols').innerHTML = '<p class="menu-empty">메뉴판을 불러오지 못했어요. 매장에서 확인해 주세요</p>';
+    }
+
+    function renderMenu(menus) {
+      if (!menus.length) return menuFailed();
+      const groups = {};
+      menus.forEach(m => (groups[m.category] ??= []).push(m));
+      const cats = Object.keys(groups).sort((a, b) =>
+        (CATEGORY_ORDER.indexOf(a) + 1 || 99) - (CATEGORY_ORDER.indexOf(b) + 1 || 99));
+      $('menu-cols').innerHTML = cats.map(cat => `
+        <div class="menu-cat">
+          <h3>${esc(cat)} <i>${esc(CATEGORY_EN[cat] || '')}</i></h3>
+          ${groups[cat].map(m => `
+            <div class="menu-row ${m.stock < 1 ? 'soldout' : ''}">
+              <span class="name">${esc(m.name)}</span>${m.stock < 1 ? '<span class="soldout-tag">오늘 품절</span>' : ''}
+              <span class="dots"></span>
+              <span class="price">${(Number(m.price) || 0).toLocaleString('ko-KR')}</span>
+            </div>`).join('')}
+        </div>`).join('');
+    }
+
+    function renderReviews(list) {
+      $('review-grid').innerHTML = list.map(r => {
+        const n = Math.min(5, Math.max(0, Math.round(Number(r.rating) || 0)));
+        return `
+          <figure class="review reveal in">
+            <span class="stars" aria-label="별점 ${n}점">${'★'.repeat(n)}${'☆'.repeat(5 - n)}</span>
+            <p>${esc(r.content)}</p>
+            <time datetime="${esc(r.created_at)}">${new Date(r.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })}</time>
+          </figure>`;
+      }).join('');
+    }
+
+    // ---------- 상단바 · 휴대폰 메뉴 ----------
+    const topBar = $('top'); // 'top'은 브라우저 예약 이름(window.top)이라 쓰면 스크립트가 멈춘다
+    const onScroll = () => topBar.classList.toggle('solid', scrollY > 24);
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    $('menu-toggle').addEventListener('click', () => {
+      const open = $('nav').classList.toggle('open');
+      $('menu-toggle').setAttribute('aria-expanded', open);
+      $('menu-toggle').textContent = open ? '✕' : '☰';
+    });
+    $('nav').addEventListener('click', e => {
+      if (e.target.tagName !== 'A') return;
+      $('nav').classList.remove('open');
+      $('menu-toggle').setAttribute('aria-expanded', false);
+      $('menu-toggle').textContent = '☰';
+    });
+
+    // ---------- 화면에 들어올 때 살짝 떠오르기 ----------
+    if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const io = new IntersectionObserver(entries => entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      }), { threshold: 0.12 });
+      document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+    } else {
+      document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+    }
+
+    fillCafe();
+    openStatus();
+    setInterval(openStatus, 60 * 1000);
+    renderSignatures();
+    loadFromDb();
+  </script>
+</body>
+</html>
