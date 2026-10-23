@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 기술 조건 (PRD에서 정한 제약)
 
 - **페이지 = HTML 파일 하나.** `index.html`, `sales.html`, `menu.html`, `reviews.html`, `promo.html`, `rivals.html`(주변 카페, 사용자 요청으로 추가) 6개. 사용자가 요청하지 않으면 페이지를 더 만들지 않는다.
-- **손님용 홈페이지 `homepage.html`은 대시보드와 별개다** ([PRD-homepage.md](PRD-homepage.md)). 아래 "공통 블록" 규칙을 따르지 않고 자기만의 무화과 · 레몬 · 레이스 색과 글꼴(Gowun Batang, Cormorant Garamond)을 쓴다. DB는 `menus` · `reviews`를 **select만** 하고 쓰기 코드를 넣지 않으며, 대시보드로 가는 링크를 두지 않는다. 가게 정보(이름 · 주소 · 시간 · 시그니처)는 파일 맨 위 `CAFE` 객체에서만 고친다. 무드 사진 `무화과 레이스 (1~7).jpg`는 참고용이라 페이지에 넣지 않는다(출처 불명, 한 장은 Pinterest 표시).
+- **손님용 홈페이지 `homepage.html`은 대시보드와 별개다** ([PRD-homepage.md](PRD-homepage.md)). 아래 "공통 블록"을 쓰지 않고 자기 `:root`를 가진다. 대시보드도 같은 무화과 · 레몬 · 레이스 톤을 쓰므로, 색 값을 바꿀 때는 두 쪽을 함께 맞춘다. DB는 `menus` · `reviews`를 **select만** 하고 쓰기 코드를 넣지 않으며, 대시보드로 가는 링크를 두지 않는다. 가게 정보(이름 · 주소 · 시간 · 시그니처)는 파일 맨 위 `CAFE` 객체에서만 고친다. 무드 사진 `무화과 레이스 (1~7).jpg`는 참고용이라 페이지에 넣지 않는다(출처 불명, 한 장은 Pinterest 표시).
 - `rivals.html`은 API 키 없이 구글 지도 임베드(`maps.google.com/maps?q=…&output=embed`)와 카카오맵 검색 링크만 쓴다. Supabase를 쓰지 않는다.
 - **npm · 빌드 도구 · 프레임워크 없음.** 라이브러리(Supabase JS, 그래프 라이브러리)는 CDN `<script>`로만 불러온다. `package.json`을 만들지 않는다.
 - **DB:** 사용자의 Supabase 프로젝트 `day4-cafe`. 브라우저에는 공개 키(publishable/anon)만 둔다.
@@ -36,9 +36,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Supabase 주소와 공개 키(`sb_publishable_…`)는 각 페이지 `<script>` 맨 위 `SUPABASE_URL` / `SUPABASE_KEY` 상수로 넣는다 (menu.html 참고). supabase-js는 CDN `@supabase/supabase-js@2.45.4` UMD로 불러온다.
 
+톤: 손님용 홈페이지와 같은 **무화과 · 레몬 · 레이스**. 아이보리 바탕, 무화과 자주(`--fig`) 주색, 레몬 · 바질 · 금빛 강조, 제목과 큰 숫자는 명조(`--serif` Gowun Batang), 본문은 Pretendard. 밝은 카드에는 아주 옅은 무화과색 점 그물(`--net`)을 깐다. 버건디 면(index 왼쪽 메뉴, 대표 숫자 카드 `.stat.dark` · `.total.dark`)에는 `--lace` = `assets/lace-ivory.png`를 깐다. 이 PNG는 사용자가 준 레이스 사진에서 **실만 따낸 아이보리 선(투명 바탕, 최대 불투명도 22%)**이다. 사진 원본은 저장소에 넣지 않는다. 금색 레이스 무늬는 "너무 튄다"고 해서 대시보드에서 모두 뺐다(`--gold`는 리뷰 별 색에만 남음). 무늬 진하기를 바꾸려면 PNG를 다시 만든다(원본에서 밝기 192~226을 0~1로 바꾸고 `-Max` 배율을 곱함). CSS opacity로 바꾸면 글자까지 흐려진다. 버튼은 알약 모양. 큰 글자 · 44px 버튼 같은 사장님용 크기 규칙은 그대로다. Google Fonts 링크(Cormorant Garamond, Gowun Batang)는 각 페이지 `<head>`에 같은 줄로 둔다.
+
 대시보드 6개 페이지(homepage.html 제외)가 글자 하나까지 같은 블록을 쓴다. 바꿀 때는 6개 파일을 모두 똑같이 고친다:
-- CSS `:root` 변수 블록 (색 · 글꼴)
-- CSS "공통 모양" 블록 (body 여백 24px/좁은 화면 16px, `.card`, 입력칸, `.btn` · `.btn-line` 높이 44px, `.btn-ghost` 44×44, `.toast`)
+- CSS `:root` 변수 블록 (색 `--fig` · `--fig-deep` · `--fig-soft` · `--linen` · `--lemon` · `--basil` · `--gold` · `--danger-soft`, 글꼴 `--font` · `--serif` · `--accent`, 무늬 `--lace` · `--net`). index.html의 "준비중" 화면이 이 블록을 정규식으로 복사하므로 값 안에 `}`를 넣지 않는다
+- CSS "공통 모양" 블록 (body 여백 24px/좁은 화면 16px, 명조 `h1` · `h2`, `.card`, 입력칸, `.btn` · `.btn-line` 높이 44px 알약, `.btn-ghost` 44×44 원, `.toast`)
 - JS "공통 도우미" 블록 (`$`, `esc`, `won`, `toast`, `friendly`) — rivals.html은 쓰지 않아 없음
 - JS "AI 호출" 블록 (`askAI`) — index · reviews · promo
 

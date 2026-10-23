@@ -5,43 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>메뉴 · 재고</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Gowun+Batang:wght@400;700&display=swap">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <style>
-    /* 공통 디자인 값: 모든 페이지가 같은 블록을 쓴다 */
+    /* 공통 디자인 값: 대시보드 모든 페이지가 같은 블록을 쓴다 (손님용 homepage.html과 같은 무화과 · 레몬 · 레이스 톤) */
     :root {
-      --bg: #faf6f0;
-      --surface: #ffffff;
-      --brown: #6f4e37;
-      --brown-dark: #4a3324;
-      --brown-soft: #efe4d6;
-      --text: #2b211a;
-      --muted: #8a7a6c;
-      --border: #e6dccf;
+      --bg: #fbf6ec;
+      --surface: #fffdf8;
+      --linen: #f2e9d8;
+      --fig: #5e2a3a;
+      --fig-deep: #45202c;
+      --fig-soft: #f4e5e2;
+      --lemon: #f2dc86;
+      --basil: #6f7f4f;
+      --gold: #b08a3c;
+      --text: #2e2427;
+      --muted: #7d6c66;
+      --border: #e4d6bd;
       --danger: #c0392b;
-      --radius: 12px;
+      --danger-soft: #fbe7e4;
+      --radius: 14px;
       --font: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+      --serif: "Gowun Batang", "Noto Serif KR", serif;
+      --accent: "Cormorant Garamond", "Gowun Batang", serif;
+      --lace: url("assets/lace-ivory.png") 0 0 / 300px auto;  /* 사용자가 준 레이스 사진에서 실만 따낸 아이보리 무늬 (투명 바탕) */
+      --net: radial-gradient(circle, rgba(94, 42, 58, .06) 1px, transparent 1.3px) 0 0 / 7px 7px;
     }
 
-    /* 공통 모양: 모든 페이지가 같은 블록을 쓴다 (여백 · 카드 · 입력칸 · 버튼 · 알림) */
+    /* 공통 모양: 대시보드 모든 페이지가 같은 블록을 쓴다 (여백 · 카드 · 입력칸 · 버튼 · 알림) */
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 24px; font-family: var(--font); background: var(--surface); color: var(--text); font-size: 16px; line-height: 1.5; }
-    h1 { margin: 0 0 4px; font-size: 26px; }
-    h2 { margin: 0 0 12px; font-size: 19px; }
+    body { margin: 0; padding: 24px; font-family: var(--font); background: var(--surface); color: var(--text); font-size: 16px; line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
+    h1 { margin: 0 0 4px; font-family: var(--serif); font-size: 28px; color: var(--fig); letter-spacing: -.01em; }
+    h2 { margin: 0 0 12px; font-family: var(--serif); font-size: 20px; color: var(--fig); }
     .sub { margin: 0 0 24px; color: var(--muted); }
-    .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+    .card { position: relative; background: var(--net), var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
     input, select, textarea, button { font: inherit; }
-    input, select, textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); min-width: 0; }
-    input:focus, select:focus, textarea:focus { outline: 2px solid var(--brown); outline-offset: -1px; }
-    .btn, .btn-line { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 10px 20px; border-radius: 8px; font-weight: 700; white-space: nowrap; text-decoration: none; cursor: pointer; }
-    .btn { border: 1px solid var(--brown); background: var(--brown); color: #fff; }
-    .btn:hover { background: var(--brown-dark); border-color: var(--brown-dark); }
-    .btn-line { border: 1px solid var(--border); background: var(--surface); color: var(--brown-dark); }
-    .btn-line:hover { background: var(--brown-soft); }
-    .btn:disabled, .btn-line:disabled { border-color: var(--border); background: var(--border); color: var(--muted); cursor: default; }
-    .btn-ghost { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--brown-dark); font-size: 20px; cursor: pointer; }
-    .btn-ghost:hover { background: var(--brown-soft); }
+    input, select, textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); min-width: 0; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--fig); outline-offset: -1px; }
+    .btn, .btn-line { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 10px 22px; border-radius: 999px; font-weight: 700; white-space: nowrap; text-decoration: none; cursor: pointer; }
+    .btn { border: 1px solid var(--fig); background: var(--fig); color: var(--surface); }
+    .btn:hover { background: var(--fig-deep); border-color: var(--fig-deep); }
+    .btn-line { border: 1px solid var(--fig); background: var(--surface); color: var(--fig); }
+    .btn-line:hover { background: var(--fig-soft); }
+    .btn:disabled, .btn-line:disabled { border-color: var(--border); background: var(--linen); color: var(--muted); cursor: default; }
+    .btn-ghost { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--fig); font-size: 20px; cursor: pointer; }
+    .btn-ghost:hover { background: var(--fig-soft); }
     .empty { padding: 32px; text-align: center; color: var(--muted); }
-    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 10; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 12px 20px; border-radius: var(--radius); background: var(--brown-dark); color: #fff; opacity: 0; transition: opacity .2s; pointer-events: none; }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 10; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 12px 22px; border-radius: 999px; background: var(--fig-deep); color: var(--bg); opacity: 0; transition: opacity .2s; pointer-events: none; }
     .toast.show { opacity: 1; }
     .toast.error { background: var(--danger); }
     @media (max-width: 720px) { body { padding: 16px; } }
@@ -62,15 +72,15 @@
     th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border); }
     th { font-size: 14px; color: var(--muted); font-weight: 600; }
     td.name { font-weight: 700; font-size: 17px; min-width: 130px; }
-    .badge-cat { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--brown-soft); color: var(--brown-dark); font-size: 13px; white-space: nowrap; }
+    .badge-cat { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--linen); color: var(--fig-deep); font-size: 13px; white-space: nowrap; }
     .price-input { width: 110px; text-align: right; }
     .stock-box { display: flex; align-items: center; gap: 6px; }
     .stock-input { width: 70px; text-align: center; font-weight: 700; }
 
     /* 재고 5개 이하 */
     tr.low td.name { color: var(--danger); }
-    tr.low .stock-input { color: var(--danger); border-color: var(--danger); background: #fdecea; }
-    .badge-low { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--danger); color: #fff; font-size: 12px; vertical-align: middle; }
+    tr.low .stock-input { color: var(--danger); border-color: var(--danger); background: var(--danger-soft); }
+    .badge-low { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--danger); color: var(--surface); font-size: 12px; vertical-align: middle; }
 
     .summary { display: flex; gap: 16px; margin-bottom: 12px; color: var(--muted); }
     .summary b { color: var(--text); }
